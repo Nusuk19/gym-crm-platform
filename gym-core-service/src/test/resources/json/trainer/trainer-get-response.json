@@ -1,0 +1,13 @@
+{
+  "firstName": "Mike",
+  "lastName": "Tyson",
+  "specialization": "BOXING",
+  "isActive": true,
+  "trainees": [
+    {
+      "username": "Abdul.Hariton",
+      "firstName": "Abdul",
+      "lastName": "Hariton"
+    }
+  ]
+}
