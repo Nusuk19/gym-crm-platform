@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="GIA-63-001-create-users-table" author="gym">
+        <createTable tableName="users">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_users"/>
+            </column>
+            <column name="first_name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(110)">
+                <constraints nullable="false"
+                             unique="true"
+                             uniqueConstraintName="uk_users_username"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="GIA-63-002-create-training-types-table" author="gym">
+        <createTable tableName="training_type">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_training_type"/>
+            </column>
+            <column name="training_type_name" type="VARCHAR(50)">
+                <constraints nullable="false"
+                             unique="true"
+                             uniqueConstraintName="uk_training_type_name"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="GIA-63-003-create-trainees-table" author="gym-crm">
+        <createTable tableName="trainees">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_trainees"/>
+            </column>
+            <column name="date_of_birth" type="DATE">
+                <constraints nullable="true"/>
+            </column>
+            <column name="address" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"
+                             unique="true"
+                             uniqueConstraintName="uk_trainees_user_id"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="trainees"
+                baseColumnNames="user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_trainees_users"/>
+    </changeSet>
+
+    <changeSet id="GIA-63-004-create-trainers-table" author="gym">
+        <createTable tableName="trainers">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_trainers"/>
+            </column>
+            <column name="specialization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"
+                             unique="true"
+                             uniqueConstraintName="uk_trainers_user_id"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="trainers"
+                baseColumnNames="specialization_id"
+                referencedTableName="training_type"
+                referencedColumnNames="id"
+                constraintName="fk_trainers_training_type"/>
+        <addForeignKeyConstraint
+                baseTableName="trainers"
+                baseColumnNames="user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_trainers_users"/>
+    </changeSet>
+
+    <changeSet id="GIA-63-005-create-trainings-table" author="gym">
+        <createTable tableName="trainings">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_trainings"/>
+            </column>
+            <column name="training_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="training_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="training_duration" type="NUMERIC(6,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trainee_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trainer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="specialization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="trainings"
+                baseColumnNames="trainee_id"
+                referencedTableName="trainees"
+                referencedColumnNames="id"
+                constraintName="fk_trainings_trainees"/>
+        <addForeignKeyConstraint
+                baseTableName="trainings"
+                baseColumnNames="trainer_id"
+                referencedTableName="trainers"
+                referencedColumnNames="id"
+                constraintName="fk_trainings_trainers"/>
+        <addForeignKeyConstraint
+                baseTableName="trainings"
+                baseColumnNames="specialization_id"
+                referencedTableName="training_type"
+                referencedColumnNames="id"
+                constraintName="fk_trainings_training_type"/>
+    </changeSet>
+
+    <changeSet id="GIA-63-006-create-trainee-trainer-table" author="gym">
+        <createTable tableName="trainee_trainer">
+            <column name="trainee_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trainer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="trainee_trainer"
+                columnNames="trainee_id, trainer_id"
+                constraintName="pk_trainee_trainer"/>
+        <addForeignKeyConstraint
+                baseTableName="trainee_trainer"
+                baseColumnNames="trainee_id"
+                referencedTableName="trainees"
+                referencedColumnNames="id"
+                constraintName="fk_trainee_trainer_trainees"/>
+        <addForeignKeyConstraint
+                baseTableName="trainee_trainer"
+                baseColumnNames="trainer_id"
+                referencedTableName="trainers"
+                referencedColumnNames="id"
+                constraintName="fk_trainee_trainer_trainers"/>
+    </changeSet>
+
+    <changeSet id="GIA-63-007-insert-training-types" author="gym">
+        <insert tableName="training_type">
+            <column name="training_type_name" value="Yoga"/>
+        </insert>
+        <insert tableName="training_type">
+            <column name="training_type_name" value="Fitness"/>
+        </insert>
+        <insert tableName="training_type">
+            <column name="training_type_name" value="Cardio"/>
+        </insert>
+        <insert tableName="training_type">
+            <column name="training_type_name" value="Pilates"/>
+        </insert>
+        <insert tableName="training_type">
+            <column name="training_type_name" value="Boxing"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
