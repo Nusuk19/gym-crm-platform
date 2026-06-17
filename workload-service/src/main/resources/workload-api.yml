@@ -1,0 +1,222 @@
+openapi: 3.0.3
+info:
+  title: Workload Service API
+  description: API for managing trainer workload summary
+  version: '1.0'
+
+servers:
+  - url: http://localhost:8082/workload-service/api/v1
+    description: Local development server
+
+tags:
+  - name: Trainer Workload
+    description: Operations related to trainer workload
+
+paths:
+  /trainer-workloads:
+    put:
+      tags:
+        - Trainer Workload
+      summary: Update trainer workload
+      description: Accepts trainer workload data when training is added or deleted
+      operationId: updateTrainerWorkload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainerWorkloadRequest'
+      responses:
+        '200':
+          description: Trainer workload updated successfully
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+
+  /trainer-workloads/{username}:
+    get:
+      tags:
+        - Trainer Workload
+      summary: Get trainer monthly workload
+      description: Returns trainer training summary duration for a specific month
+      operationId: getTrainerMonthlyWorkload
+      parameters:
+        - $ref: '#/components/parameters/Username'
+        - $ref: '#/components/parameters/Year'
+        - $ref: '#/components/parameters/Month'
+      responses:
+        '200':
+          description: Trainer monthly workload retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainerMonthlyWorkloadResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Trainer workload not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+
+components:
+  parameters:
+    Username:
+      name: username
+      in: path
+      description: Trainer username
+      required: true
+      schema:
+        type: string
+        pattern: ^[a-zA-Z]+\.[a-zA-Z]+(\d+)?$
+        example: abdul.hariton
+    Year:
+      name: year
+      in: query
+      description: Training year
+      required: true
+      schema:
+        type: integer
+        minimum: 1900
+        example: 2026
+    Month:
+      name: month
+      in: query
+      description: Training month number
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 12
+        example: 6
+  schemas:
+    TrainerWorkloadRequest:
+      type: object
+      required:
+        - trainerUsername
+        - trainerFirstName
+        - trainerLastName
+        - isActive
+        - trainingDate
+        - trainingDuration
+        - actionType
+      properties:
+        trainerUsername:
+          type: string
+          description: Trainer username
+          pattern: ^[a-zA-Z]+\.[a-zA-Z]+(\d+)?$
+          example: abdul.hariton
+        trainerFirstName:
+          type: string
+          description: Trainer first name
+          maxLength: 50
+          example: Abdul
+        trainerLastName:
+          type: string
+          description: Trainer last name
+          maxLength: 50
+          example: Hariton
+        isActive:
+          type: boolean
+          description: Trainer active status
+          example: true
+        trainingDate:
+          type: string
+          format: date
+          description: Training date
+          example: '2026-06-10'
+        trainingDuration:
+          type: integer
+          description: Training duration in minutes
+          minimum: 1
+          example: 60
+        actionType:
+          $ref: '#/components/schemas/ActionType'
+    ActionType:
+      type: string
+      description: Workload action type
+      enum:
+        - ADD
+        - DELETE
+      example: ADD
+    TrainerMonthlyWorkloadResponse:
+      type: object
+      required:
+        - trainerUsername
+        - year
+        - month
+        - trainingSummaryDuration
+      properties:
+        trainerUsername:
+          type: string
+          description: Trainer username
+          example: abdul.hariton
+        year:
+          type: integer
+          description: Training year
+          example: 2026
+        month:
+          type: integer
+          description: Training month number
+          minimum: 1
+          maximum: 12
+          example: 6
+        trainingSummaryDuration:
+          type: integer
+          description: Total trainer workload duration for the selected month in minutes
+          example: 180
+    ErrorResponse:
+      type: object
+      properties:
+        errorCode:
+          type: integer
+          description: Unique identifier for the error type
+          example: 2760
+        errorMessage:
+          type: string
+          description: Human-readable description of the error
+          example: "Validation error: trainerUsername must not be empty"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token authorization
+security:
+  - bearerAuth: []
