@@ -14,15 +14,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/trainer-workloads")
+@RequestMapping("${app.api.base-path}/trainer-workloads")
 @RequiredArgsConstructor
 public class TrainerWorkloadController {
 
-    private final TrainerWorkloadServiceImpl trainerWorkloadService;
+    private final TrainerWorkloadServiceImpl service;
 
     @PutMapping
     public ResponseEntity<Void> updateTrainerWorkload(@Valid @RequestBody TrainerWorkloadRequest request) {
-        trainerWorkloadService.updateTrainerWorkload(request);
+        service.updateTrainerWorkload(request);
 
         return ResponseEntity.ok().build();
     }
@@ -30,7 +30,7 @@ public class TrainerWorkloadController {
     @GetMapping("/{username}")
     public ResponseEntity<Integer> getTrainerMonthlyWorkload(@PathVariable String username, @RequestParam int year,
                                                              @RequestParam int month) {
-        int monthlyWorkload = trainerWorkloadService.getMonthlyWorkload(username, year, month);
+        int monthlyWorkload = service.getMonthlyWorkload(username, year, month);
 
         return ResponseEntity.ok(monthlyWorkload);
     }

@@ -38,7 +38,7 @@ class TrainerWorkloadControllerTest {
     private ObjectMapper mapper;
 
     @MockBean
-    private TrainerWorkloadServiceImpl trainerWorkloadService;
+    private TrainerWorkloadServiceImpl service;
 
     @Test
     void updateTrainerWorkload_shouldReturnOk() throws Exception {
@@ -49,12 +49,12 @@ class TrainerWorkloadControllerTest {
                         .content(mapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        verify(trainerWorkloadService).updateTrainerWorkload(request);
+        verify(service).updateTrainerWorkload(request);
     }
 
     @Test
     void getTrainerMonthlyWorkload_shouldReturnOk() throws Exception {
-        when(trainerWorkloadService.getMonthlyWorkload(USERNAME, YEAR, MONTH)).thenReturn(DURATION);
+        when(service.getMonthlyWorkload(USERNAME, YEAR, MONTH)).thenReturn(DURATION);
 
         mockMvc.perform(get(BASE_URL + "/" + USERNAME)
                         .param("year", String.valueOf(YEAR))
@@ -62,7 +62,7 @@ class TrainerWorkloadControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(String.valueOf(DURATION)));
 
-        verify(trainerWorkloadService).getMonthlyWorkload(USERNAME, YEAR, MONTH);
+        verify(service).getMonthlyWorkload(USERNAME, YEAR, MONTH);
     }
 
     private TrainerWorkloadRequest buildRequest() {
