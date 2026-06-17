@@ -6,3 +6,7 @@ server:
   port: 8082
   servlet:
     context-path: /workload-service
+
+app:
+  api:
+    base-path: /api/v1
