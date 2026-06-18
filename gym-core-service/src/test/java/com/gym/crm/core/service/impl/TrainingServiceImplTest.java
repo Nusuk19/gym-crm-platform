@@ -1,6 +1,10 @@
 package com.gym.crm.core.service.impl;
 
 import com.gym.crm.core.actuator.metrics.GymMetrics;
+import com.gym.crm.core.client.workload.WorkloadRequestMapper;
+import com.gym.crm.core.client.workload.WorkloadUpdateEvent;
+import com.gym.crm.core.client.workload.model.ActionType;
+import com.gym.crm.core.client.workload.model.TrainerWorkloadRequest;
 import com.gym.crm.core.dao.search.filters.TraineeTrainingSearchFilter;
 import com.gym.crm.core.dao.search.filters.TrainerTrainingSearchFilter;
 import com.gym.crm.core.dto.request.CreateTrainingRequest;
@@ -15,13 +19,13 @@ import com.gym.crm.core.repository.TraineeRepository;
 import com.gym.crm.core.repository.TrainerRepository;
 import com.gym.crm.core.repository.TrainingRepository;
 import com.gym.crm.core.service.common.EntityValidator;
-import com.gym.crm.core.service.impl.TrainingServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -59,16 +63,23 @@ class TrainingServiceImplTest {
     private TrainingServiceImpl service;
     @Mock
     private GymMetrics gymMetrics;
+    @Mock
+    private WorkloadRequestMapper workloadRequestMapper;
+    @Mock
+    private ApplicationEventPublisher publisher;
 
     @Test
     void create_whenValidRequest_buildsTrainingAndSaves() {
         Trainee trainee = buildTrainee();
         Trainer trainer = buildTrainer();
         CreateTrainingRequest request = buildCreateRequest();
+        Training savedTraining = buildTraining();
+        TrainerWorkloadRequest workloadRequest = new TrainerWorkloadRequest().trainerUsername(TRAINER_USERNAME);
 
         when(traineeRepository.findByUserUsername(TRAINEE_USERNAME)).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUserUsername(TRAINER_USERNAME)).thenReturn(Optional.of(trainer));
-        when(trainingRepository.save(any(Training.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(trainingRepository.save(any(Training.class))).thenReturn(savedTraining);
+        when(workloadRequestMapper.toRequest(savedTraining, ActionType.ADD)).thenReturn(workloadRequest);
 
         Training actual = service.create(request);
 
@@ -83,6 +94,8 @@ class TrainingServiceImplTest {
         verify(validator).validateTraining(any(Training.class));
         verify(trainingRepository).save(any(Training.class));
         verify(gymMetrics).incrementTrainingsCreated();
+        verify(workloadRequestMapper).toRequest(savedTraining, ActionType.ADD);
+        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest)));
     }
 
     @Test
@@ -119,10 +132,12 @@ class TrainingServiceImplTest {
     void create_usesTrainerSpecializationAsTrainingType() {
         Trainer trainer = buildTrainer();
         CreateTrainingRequest request = buildCreateRequest();
+        TrainerWorkloadRequest workloadRequest = new TrainerWorkloadRequest().trainerUsername(TRAINER_USERNAME);
 
         when(traineeRepository.findByUserUsername(TRAINEE_USERNAME)).thenReturn(Optional.of(buildTrainee()));
         when(trainerRepository.findByUserUsername(TRAINER_USERNAME)).thenReturn(Optional.of(trainer));
         when(trainingRepository.save(any(Training.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(workloadRequestMapper.toRequest(any(Training.class), any(ActionType.class))).thenReturn(workloadRequest);
 
         Training actual = service.create(request);
 
