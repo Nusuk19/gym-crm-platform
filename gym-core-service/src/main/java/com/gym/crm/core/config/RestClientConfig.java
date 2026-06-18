@@ -1,6 +1,7 @@
 package com.gym.crm.core.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
@@ -12,8 +13,14 @@ public class RestClientConfig {
     private String baseUrl;
 
     @Bean
-    public RestClient workloadRestClient(RestClient.Builder builder) {
-        return builder
+    @LoadBalanced
+    public RestClient.Builder loadBalancedRestClientBuilder() {
+        return RestClient.builder();
+    }
+
+    @Bean
+    public RestClient workloadRestClient(RestClient.Builder loadBalancedRestClientBuilder) {
+        return loadBalancedRestClientBuilder
                 .baseUrl(baseUrl)
                 .build();
     }
