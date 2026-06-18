@@ -10,3 +10,10 @@ server:
 app:
   api:
     base-path: /api/v1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
+  instance:
+    prefer-ip-address: true

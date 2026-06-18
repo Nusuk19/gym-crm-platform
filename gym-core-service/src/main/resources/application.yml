@@ -46,3 +46,10 @@ jwt:
 workload:
   service:
     base-url: ${WORKLOAD_SERVICE_URL}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
+  instance:
+    prefer-ip-address: true
