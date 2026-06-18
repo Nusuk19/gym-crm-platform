@@ -9,4 +9,9 @@ class DiscoveryApplicationTest {
     @Test
     void contextLoads() {
     }
+
+    @Test
+    void main_shouldStartApplication() {
+        DiscoveryApplication.main(new String[]{});
+    }
 }
