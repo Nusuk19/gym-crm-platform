@@ -4,6 +4,8 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.gym.crm.core.actuator.metrics.GymMetrics;
+import com.gym.crm.core.client.workload.WorkloadRequestMapper;
+import com.gym.crm.core.client.workload.WorkloadUpdateEvent;
 import com.gym.crm.core.dto.request.ActivationRequest;
 import com.gym.crm.core.dto.request.ChangePasswordRequest;
 import com.gym.crm.core.exception.EntityNotFoundException;
@@ -16,7 +18,6 @@ import com.gym.crm.core.repository.TrainerRepository;
 import com.gym.crm.core.service.UserProfileService;
 import com.gym.crm.core.service.UserService;
 import com.gym.crm.core.service.common.EntityValidator;
-import com.gym.crm.core.service.impl.TraineeServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -63,6 +65,10 @@ class TraineeServiceImplTest {
     private TraineeServiceImpl service;
     @Mock
     private GymMetrics gymMetrics;
+    @Mock
+    private WorkloadRequestMapper workloadRequestMapper;
+    @Mock
+    private ApplicationEventPublisher publisher;
 
     private ListAppender<ILoggingEvent> listAppender;
 
@@ -137,13 +143,17 @@ class TraineeServiceImplTest {
 
     @Test
     void deleteByUsername_whenValidUsername_deletesSuccessfully() {
-        when(traineeRepository.findByUserUsername(USERNAME)).thenReturn(Optional.of(trainee));
+        Trainee traineeWithTrainings = trainee.toBuilder()
+                .trainings(new ArrayList<>())
+                .build();
+        when(traineeRepository.findByUserUsername(USERNAME)).thenReturn(Optional.of(traineeWithTrainings));
 
         service.deleteByUsername(USERNAME);
 
         verify(validator).requireNonBlank(USERNAME, "Username cannot be blank");
         verify(traineeRepository).findByUserUsername(USERNAME);
-        verify(traineeRepository).delete(trainee);
+        verify(traineeRepository).delete(traineeWithTrainings);
+        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of()));
     }
 
     @Test

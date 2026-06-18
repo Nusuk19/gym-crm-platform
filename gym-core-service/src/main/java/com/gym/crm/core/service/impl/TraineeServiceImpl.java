@@ -1,6 +1,10 @@
 package com.gym.crm.core.service.impl;
 
 import com.gym.crm.core.actuator.metrics.GymMetrics;
+import com.gym.crm.core.client.workload.WorkloadRequestMapper;
+import com.gym.crm.core.client.workload.WorkloadUpdateEvent;
+import com.gym.crm.core.client.workload.model.ActionType;
+import com.gym.crm.core.client.workload.model.TrainerWorkloadRequest;
 import com.gym.crm.core.dto.request.ActivationRequest;
 import com.gym.crm.core.dto.request.ChangePasswordRequest;
 import com.gym.crm.core.exception.EntityNotFoundException;
@@ -15,6 +19,7 @@ import com.gym.crm.core.service.UserService;
 import com.gym.crm.core.service.common.EntityValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +40,8 @@ public class TraineeServiceImpl implements TraineeService {
     private final UserProfileService userProfileService;
     private final UserService userService;
     private final GymMetrics gymMetrics;
+    private final WorkloadRequestMapper workloadRequestMapper;
+    private final ApplicationEventPublisher publisher;
 
     @Override
     @Transactional
@@ -115,8 +122,14 @@ public class TraineeServiceImpl implements TraineeService {
 
         Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException(TRAINEE_NOT_FOUND + username));
+        List<TrainerWorkloadRequest> workloadRequests = trainee.getTrainings().stream()
+                .map(training -> workloadRequestMapper.toRequest(training, ActionType.DELETE))
+                .toList();
 
         traineeRepository.delete(trainee);
+        publisher.publishEvent(new WorkloadUpdateEvent(workloadRequests));
+
+        log.info("Trainee deleted: username={}, workload events published: {}", username, workloadRequests.size());
     }
 
     @Override
