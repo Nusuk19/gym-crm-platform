@@ -20,6 +20,7 @@
         <module>gym-core-service</module>
         <module>workload-service</module>
         <module>discovery-service</module>
+        <module>gateway-service</module>
     </modules>
 
     <properties>
