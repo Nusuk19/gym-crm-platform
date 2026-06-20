@@ -12,7 +12,7 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class WorkloadServiceClient {
 
-    private static final String WORKLOAD_CB = "workload";
+    private static final String WORKLOAD_CB = "workload-service";
 
     private final RestClient workloadRestClient;
 
