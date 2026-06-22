@@ -16,6 +16,7 @@ import com.gym.crm.core.repository.TraineeRepository;
 import com.gym.crm.core.repository.TrainerRepository;
 import com.gym.crm.core.repository.TrainingRepository;
 import com.gym.crm.core.repository.specification.TrainingSpecifications;
+import com.gym.crm.core.security.JwtTokenExtractor;
 import com.gym.crm.core.service.TrainingService;
 import com.gym.crm.core.service.common.EntityValidator;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final GymMetrics gymMetrics;
     private final WorkloadRequestMapper workloadRequestMapper;
     private final ApplicationEventPublisher publisher;
+    private final JwtTokenExtractor jwtTokenExtractor;
 
     @Override
     @Transactional
@@ -63,7 +65,7 @@ public class TrainingServiceImpl implements TrainingService {
 
         Training saved = trainingRepository.save(training);
         TrainerWorkloadRequest workloadRequest = workloadRequestMapper.toRequest(saved, ActionType.ADD);
-        publisher.publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest)));
+        publisher.publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest), jwtTokenExtractor.extract()));
 
         gymMetrics.incrementTrainingsCreated();
         log.info("Training created with id={}, workload event published", saved.getId());
