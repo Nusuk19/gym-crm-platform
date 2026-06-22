@@ -1,5 +1,6 @@
-package com.gym.crm.workload.security;
+package com.gym.crm.workload.config;
 
+import com.gym.crm.workload.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +21,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // NOSONAR CSRF is disabled because API is stateless (JWT Bearer auth, no cookies/sessions)
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
