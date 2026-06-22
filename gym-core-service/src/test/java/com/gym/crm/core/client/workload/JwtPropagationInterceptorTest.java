@@ -1,6 +1,5 @@
-package com.gym.crm.core.security;
+package com.gym.crm.core.client.workload;
 
-import com.gym.crm.core.client.workload.JwtPropagationInterceptor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
