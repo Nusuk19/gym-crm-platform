@@ -18,6 +18,7 @@ import com.gym.crm.core.model.User;
 import com.gym.crm.core.repository.TraineeRepository;
 import com.gym.crm.core.repository.TrainerRepository;
 import com.gym.crm.core.repository.TrainingRepository;
+import com.gym.crm.core.security.JwtTokenExtractor;
 import com.gym.crm.core.service.common.EntityValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,6 +68,8 @@ class TrainingServiceImplTest {
     private WorkloadRequestMapper workloadRequestMapper;
     @Mock
     private ApplicationEventPublisher publisher;
+    @Mock
+    private JwtTokenExtractor jwtTokenExtractor;
 
     @Test
     void create_whenValidRequest_buildsTrainingAndSaves() {
@@ -75,11 +78,13 @@ class TrainingServiceImplTest {
         CreateTrainingRequest request = buildCreateRequest();
         Training savedTraining = buildTraining();
         TrainerWorkloadRequest workloadRequest = new TrainerWorkloadRequest().trainerUsername(TRAINER_USERNAME);
+        String jwtToken = "jwt-token";
 
         when(traineeRepository.findByUserUsername(TRAINEE_USERNAME)).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUserUsername(TRAINER_USERNAME)).thenReturn(Optional.of(trainer));
         when(trainingRepository.save(any(Training.class))).thenReturn(savedTraining);
         when(workloadRequestMapper.toRequest(savedTraining, ActionType.ADD)).thenReturn(workloadRequest);
+        when(jwtTokenExtractor.extract()).thenReturn(jwtToken);
 
         Training actual = service.create(request);
 
@@ -95,7 +100,7 @@ class TrainingServiceImplTest {
         verify(trainingRepository).save(any(Training.class));
         verify(gymMetrics).incrementTrainingsCreated();
         verify(workloadRequestMapper).toRequest(savedTraining, ActionType.ADD);
-        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest)));
+        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest), jwtToken));
     }
 
     @Test

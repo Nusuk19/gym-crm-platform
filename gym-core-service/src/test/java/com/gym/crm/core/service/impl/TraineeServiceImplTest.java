@@ -15,6 +15,7 @@ import com.gym.crm.core.model.Trainer;
 import com.gym.crm.core.model.User;
 import com.gym.crm.core.repository.TraineeRepository;
 import com.gym.crm.core.repository.TrainerRepository;
+import com.gym.crm.core.security.JwtTokenExtractor;
 import com.gym.crm.core.service.UserProfileService;
 import com.gym.crm.core.service.UserService;
 import com.gym.crm.core.service.common.EntityValidator;
@@ -69,6 +70,8 @@ class TraineeServiceImplTest {
     private WorkloadRequestMapper workloadRequestMapper;
     @Mock
     private ApplicationEventPublisher publisher;
+    @Mock
+    private JwtTokenExtractor jwtTokenExtractor;
 
     private ListAppender<ILoggingEvent> listAppender;
 
@@ -146,14 +149,17 @@ class TraineeServiceImplTest {
         Trainee traineeWithTrainings = trainee.toBuilder()
                 .trainings(new ArrayList<>())
                 .build();
+        String jwtToken = "jwt-token";
+
         when(traineeRepository.findByUserUsername(USERNAME)).thenReturn(Optional.of(traineeWithTrainings));
+        when(jwtTokenExtractor.extract()).thenReturn(jwtToken);
 
         service.deleteByUsername(USERNAME);
 
         verify(validator).requireNonBlank(USERNAME, "Username cannot be blank");
         verify(traineeRepository).findByUserUsername(USERNAME);
         verify(traineeRepository).delete(traineeWithTrainings);
-        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of()));
+        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of(), jwtToken));
     }
 
     @Test

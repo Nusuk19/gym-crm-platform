@@ -3,9 +3,12 @@ package com.gym.crm.workload.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gym.crm.workload.openapi.ActionType;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
+import com.gym.crm.workload.security.JwtAuthenticationFilter;
+import com.gym.crm.workload.security.JwtService;
 import com.gym.crm.workload.service.TrainerWorkloadServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -21,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TrainerWorkloadController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class TrainerWorkloadControllerTest {
 
     private static final String BASE_URL = "/api/v1/trainer-workloads";
@@ -33,12 +37,15 @@ class TrainerWorkloadControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper mapper;
 
     @MockBean
     private TrainerWorkloadServiceImpl service;
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @MockBean
+    private JwtService jwtService;
 
     @Test
     void updateTrainerWorkload_shouldReturnOk() throws Exception {

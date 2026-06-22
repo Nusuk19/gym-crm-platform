@@ -13,6 +13,7 @@ import com.gym.crm.core.model.Trainer;
 import com.gym.crm.core.model.User;
 import com.gym.crm.core.repository.TraineeRepository;
 import com.gym.crm.core.repository.TrainerRepository;
+import com.gym.crm.core.security.JwtTokenExtractor;
 import com.gym.crm.core.service.TraineeService;
 import com.gym.crm.core.service.UserProfileService;
 import com.gym.crm.core.service.UserService;
@@ -42,6 +43,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final GymMetrics gymMetrics;
     private final WorkloadRequestMapper workloadRequestMapper;
     private final ApplicationEventPublisher publisher;
+    private final JwtTokenExtractor jwtTokenExtractor;
 
     @Override
     @Transactional
@@ -127,7 +129,7 @@ public class TraineeServiceImpl implements TraineeService {
                 .toList();
 
         traineeRepository.delete(trainee);
-        publisher.publishEvent(new WorkloadUpdateEvent(workloadRequests));
+        publisher.publishEvent(new WorkloadUpdateEvent(workloadRequests, jwtTokenExtractor.extract()));
 
         log.info("Trainee deleted: username={}, workload events published: {}", username, workloadRequests.size());
     }
