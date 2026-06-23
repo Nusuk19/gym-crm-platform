@@ -28,7 +28,10 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @RestClientTest
-@ContextConfiguration(classes = {WorkloadServiceClient.class, TestRestClientConfig.class})
+@ContextConfiguration(classes = {
+        WorkloadServiceClient.class,
+        TestRestClientConfig.class
+})
 class WorkloadServiceClientTest {
 
     private static final String USERNAME = "abdul.hariton";
@@ -45,10 +48,12 @@ class WorkloadServiceClientTest {
     @AfterEach
     void tearDown() {
         MDC.clear();
+        server.reset();
     }
 
     @Test
     void updateTrainerWorkload_shouldSendPutRequest() {
+
         TrainerWorkloadRequest request = buildRequest();
 
         server.expect(requestTo("http://localhost:8082/workload-service/api/v1/trainer-workloads"))
@@ -80,14 +85,16 @@ class WorkloadServiceClientTest {
     }
 
     @Test
-    void updateTrainerWorkload_shouldThrow_whenServerReturnsError() {
+    void updateTrainerWorkload_shouldPropagateRestClientException_whenServerReturns5xx() {
+
         TrainerWorkloadRequest request = buildRequest();
 
         server.expect(requestTo("http://localhost:8082/workload-service/api/v1/trainer-workloads"))
-                .andExpect(method(HttpMethod.PUT))
                 .andRespond(withServerError());
 
-        assertThatThrownBy(() -> client.updateTrainerWorkload(request)).isInstanceOf(RestClientException.class);
+        assertThatThrownBy(() -> client.updateTrainerWorkload(request))
+                .isInstanceOf(RestClientException.class)
+                .hasMessageContaining("500");
 
         server.verify();
     }

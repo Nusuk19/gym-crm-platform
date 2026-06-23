@@ -125,6 +125,20 @@ public class GlobalExceptionHandler {
         return buildResponse(AUTHORIZATION_ERROR, "User is temporarily blocked due to multiple failed login attempts. Please try again later.");
     }
 
+    @ExceptionHandler(ServiceTimeoutException.class)
+    public ResponseEntity<Map<String, Object>> handleServiceTimeout(ServiceTimeoutException ex) {
+        log.warn("Timeout: {}", ex.getMessage());
+
+        return buildResponse(ApiErrorCode.TIMEOUT_ERROR, ex.getMessage());
+    }
+
+    @ExceptionHandler(ServiceConnectionException.class)
+    public ResponseEntity<Map<String, Object>> handleServiceConnection(ServiceConnectionException ex) {
+        log.warn("Connection error: {}", ex.getMessage());
+
+        return buildResponse(ApiErrorCode.CONNECTION_ERROR, ex.getMessage());
+    }
+
     private ResponseEntity<Map<String, Object>> buildResponse(ApiErrorCode errorCode) {
         return buildBody(errorCode, errorCode.getMessage());
     }
