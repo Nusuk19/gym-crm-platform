@@ -17,10 +17,12 @@
     </parent>
 
     <modules>
+        <module>common-logging</module>
         <module>gym-core-service</module>
         <module>workload-service</module>
         <module>discovery-service</module>
         <module>gateway-service</module>
+        <module>common-logging</module>
     </modules>
 
     <properties>
