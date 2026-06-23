@@ -75,6 +75,16 @@ class WorkloadUpdateListenerTest {
         verify(client).updateTrainerWorkload(request);
     }
 
+    @Test
+    void handle_shouldRestoreMdc_whenTransactionIdPresent() {
+        TrainerWorkloadRequest request = buildRequest();
+        WorkloadUpdateEvent event = new WorkloadUpdateEvent(List.of(request), JWT_TOKEN, "tx-123");
+
+        listener.handle(event);
+
+        verify(client).updateTrainerWorkload(request);
+    }
+
     private TrainerWorkloadRequest buildRequest() {
         return new TrainerWorkloadRequest()
                 .trainerUsername("abdul.hariton")

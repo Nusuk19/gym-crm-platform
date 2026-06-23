@@ -1,6 +1,5 @@
-package com.gym.crm.core.logging;
+package com.gym.crm.common.logging;
 
-import com.gym.crm.common.logging.AbstractServiceLoggingAspect;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.AfterEach;
@@ -12,9 +11,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class ServiceLoggingAspectTest {
+class AbstractServiceLoggingAspectTest {
 
-    private final AbstractServiceLoggingAspect aspect = new ServiceLoggingAspect();
+    private final AbstractServiceLoggingAspect aspect = new AbstractServiceLoggingAspect() {};
 
     @AfterEach
     void tearDown() {
@@ -32,12 +31,7 @@ class ServiceLoggingAspectTest {
 
     @Test
     void logServiceOperation_shouldRethrowException() throws Throwable {
-        ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
-        MethodSignature signature = mock(MethodSignature.class);
-        when(joinPoint.getSignature()).thenReturn(signature);
-        when(signature.getDeclaringType()).thenReturn(Object.class);
-        when(signature.getName()).thenReturn("failing");
-        when(joinPoint.getArgs()).thenReturn(new Object[]{});
+        ProceedingJoinPoint joinPoint = mockJoinPoint("failing", null);
         when(joinPoint.proceed()).thenThrow(new IllegalStateException("boom"));
 
         assertThatThrownBy(() -> aspect.logServiceOperation(joinPoint))
@@ -47,21 +41,21 @@ class ServiceLoggingAspectTest {
 
     @Test
     void logServiceOperation_shouldWorkWithTransactionIdInMdc() throws Throwable {
-        MDC.put(TransactionIdFilter.TRANSACTION_ID_KEY, "test-tx-id");
-        ProceedingJoinPoint joinPoint = mockJoinPoint("greet", "hello mdc");
+        MDC.put(AbstractServiceLoggingAspect.TRANSACTION_ID_KEY, "test-tx-id");
+        ProceedingJoinPoint joinPoint = mockJoinPoint("greet", "hello");
 
         Object result = aspect.logServiceOperation(joinPoint);
 
-        assertThat(result).isEqualTo("hello mdc");
+        assertThat(result).isEqualTo("hello");
     }
 
     @Test
     void logServiceOperation_shouldWorkWithoutTransactionIdInMdc() throws Throwable {
-        ProceedingJoinPoint joinPoint = mockJoinPoint("greet", "hello no-mdc");
+        ProceedingJoinPoint joinPoint = mockJoinPoint("greet", "hello");
 
         Object result = aspect.logServiceOperation(joinPoint);
 
-        assertThat(result).isEqualTo("hello no-mdc");
+        assertThat(result).isEqualTo("hello");
     }
 
     private ProceedingJoinPoint mockJoinPoint(String methodName, Object returnValue) throws Throwable {
