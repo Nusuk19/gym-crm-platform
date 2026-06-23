@@ -13,7 +13,9 @@ public enum ApiErrorCode {
     AUTHORIZATION_ERROR(2806, HttpStatus.FORBIDDEN, "User is not authorized for request operation"),
     NOT_FOUND_ERROR(2835, HttpStatus.NOT_FOUND, "Requested data was not found"),
     SERVICE_ERROR(3200, HttpStatus.INTERNAL_SERVER_ERROR, "Internal processing error"),
-    DATABASE_ERROR(3358, HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected database access failure");
+    DATABASE_ERROR(3358, HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected database access failure"),
+    TIMEOUT_ERROR(3504, HttpStatus.GATEWAY_TIMEOUT, "Downstream service timeout"),
+    CONNECTION_ERROR(3503, HttpStatus.SERVICE_UNAVAILABLE, "Connection error");
 
     private final int code;
     private final HttpStatus status;

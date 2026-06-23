@@ -13,6 +13,7 @@ import org.springframework.web.client.RestClient;
 import java.time.LocalDate;
 import java.time.Month;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -42,8 +43,8 @@ class WorkloadServiceClientCircuitBreakerTest {
     }
 
     @Test
-    void updateTrainerWorkload_shouldNotThrow_whenServiceFails() {
-        assertDoesNotThrow(() -> client.updateTrainerWorkload(buildRequest()));
+    void updateTrainerWorkload_shouldThrowServiceException_whenServiceFails() {
+        assertThatThrownBy(() -> client.updateTrainerWorkload(buildRequest())).isInstanceOf(RuntimeException.class);
     }
 
     private TrainerWorkloadRequest buildRequest() {

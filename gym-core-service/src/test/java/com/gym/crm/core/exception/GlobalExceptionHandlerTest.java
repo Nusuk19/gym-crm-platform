@@ -203,4 +203,26 @@ class GlobalExceptionHandlerTest {
                 .contains("User is not authorized for request operation")
                 .contains("User is temporarily blocked due to multiple failed login attempts. Please try again later.");
     }
+
+    @Test
+    void handleServiceTimeout_shouldReturn504() {
+        var ex = new ServiceTimeoutException("workload-service did not respond within 3s");
+
+        var response = handler.handleServiceTimeout(ex);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(504);
+        assertThat(response.getBody().get("errorCode")).isEqualTo(3504);
+        assertThat(response.getBody().get("errorMessage")).isEqualTo("Downstream service timeout: workload-service did not respond within 3s");
+    }
+
+    @Test
+    void handleServiceConnection_shouldReturn503() {
+        var ex = new ServiceConnectionException("Cannot connect to workload-service");
+
+        var response = handler.handleServiceConnection(ex);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(503);
+        assertThat(response.getBody().get("errorCode")).isEqualTo(3503);
+        assertThat(response.getBody().get("errorMessage")).isEqualTo("Connection error: Cannot connect to workload-service");
+    }
 }
