@@ -3,11 +3,7 @@ package com.gym.crm.core.client.workload;
 import com.gym.crm.core.client.workload.model.ActionType;
 import com.gym.crm.core.client.workload.model.TrainerWorkloadRequest;
 import com.gym.crm.core.config.TestRestClientConfig;
-import com.gym.crm.core.exception.ServiceConnectionException;
-import com.gym.crm.core.exception.ServiceException;
 import com.gym.crm.core.logging.TransactionIdFilter;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
@@ -23,8 +19,13 @@ import java.time.LocalDate;
 import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @RestClientTest
 @ContextConfiguration(classes = {
