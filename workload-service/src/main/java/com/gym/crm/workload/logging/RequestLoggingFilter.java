@@ -56,6 +56,12 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     private String getRequestBody(ContentCachingRequestWrapper request) {
         byte[] content = request.getContentAsByteArray();
 
-        return content.length == 0 ? "" : new String(content, StandardCharsets.UTF_8);
+        return content.length == 0 ? "" : maskSensitiveData(new String(content, StandardCharsets.UTF_8));
+    }
+
+    String maskSensitiveData(String body) {
+        if (body == null || body.isBlank()) return "";
+
+        return body.replaceAll("(\"(?:password|oldPassword|newPassword)\"\\s*:\\s*)\"[^\"]*\"", "$1\"***\"");
     }
 }
