@@ -2,6 +2,7 @@ package com.gym.crm.workload.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gym.crm.workload.openapi.ActionType;
+import com.gym.crm.workload.openapi.TrainerMonthlyWorkloadResponse;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
 import com.gym.crm.workload.security.JwtAuthenticationFilter;
 import com.gym.crm.workload.security.JwtService;
@@ -15,12 +16,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.NoSuchElementException;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TrainerWorkloadController.class)
@@ -61,15 +63,54 @@ class TrainerWorkloadControllerTest {
 
     @Test
     void getTrainerMonthlyWorkload_shouldReturnOk() throws Exception {
-        when(service.getMonthlyWorkload(USERNAME, YEAR, MONTH)).thenReturn(DURATION);
+        TrainerMonthlyWorkloadResponse response = new TrainerMonthlyWorkloadResponse(USERNAME, YEAR, MONTH, DURATION);
+
+        when(service.getMonthlyWorkload(USERNAME, YEAR, MONTH)).thenReturn(response);
 
         mockMvc.perform(get(BASE_URL + "/" + USERNAME)
                         .param("year", String.valueOf(YEAR))
                         .param("month", String.valueOf(MONTH)))
                 .andExpect(status().isOk())
-                .andExpect(content().string(String.valueOf(DURATION)));
+                .andExpect(jsonPath("$.trainerUsername").value(USERNAME))
+                .andExpect(jsonPath("$.year").value(YEAR))
+                .andExpect(jsonPath("$.month").value(MONTH))
+                .andExpect(jsonPath("$.trainingSummaryDuration").value(DURATION));
 
         verify(service).getMonthlyWorkload(USERNAME, YEAR, MONTH);
+    }
+
+    @Test
+    void updateTrainerWorkload_shouldReturnBadRequest_whenUsernameIsInvalid() throws Exception {
+        TrainerWorkloadRequest request = new TrainerWorkloadRequest()
+                .trainerUsername("invalid username")
+                .trainerFirstName(FIRST_NAME)
+                .trainerLastName(LAST_NAME)
+                .isActive(true)
+                .trainingDate(LocalDate.of(YEAR, MONTH, 10))
+                .trainingDuration(DURATION)
+                .actionType(ActionType.ADD);
+
+        mockMvc.perform(put(BASE_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateTrainerWorkload_shouldReturnBadRequest_whenBodyIsMissing() throws Exception {
+        mockMvc.perform(put(BASE_URL)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getTrainerMonthlyWorkload_shouldReturnNotFound_whenTrainerDoesNotExist() throws Exception {
+        when(service.getMonthlyWorkload(USERNAME, YEAR, MONTH)).thenThrow(new NoSuchElementException("Trainer workload not found: " + USERNAME));
+
+        mockMvc.perform(get(BASE_URL + "/" + USERNAME)
+                        .param("year", String.valueOf(YEAR))
+                        .param("month", String.valueOf(MONTH)))
+                .andExpect(status().isNotFound());
     }
 
     private TrainerWorkloadRequest buildRequest() {

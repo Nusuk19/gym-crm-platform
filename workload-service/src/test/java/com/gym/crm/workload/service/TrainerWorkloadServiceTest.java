@@ -1,6 +1,7 @@
 package com.gym.crm.workload.service;
 
 import com.gym.crm.workload.openapi.ActionType;
+import com.gym.crm.workload.openapi.TrainerMonthlyWorkloadResponse;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +32,9 @@ class TrainerWorkloadServiceTest {
     void updateTrainerWorkload_shouldAddDuration_whenActionTypeAdd() {
         service.updateTrainerWorkload(createRequest(60, ActionType.ADD));
 
-        int actual = service.getMonthlyWorkload(USERNAME, YEAR, MONTH);
+        TrainerMonthlyWorkloadResponse actual = service.getMonthlyWorkload(USERNAME, YEAR, MONTH);
 
-        assertThat(actual).isEqualTo(60);
+        assertThat(actual.getTrainingSummaryDuration()).isEqualTo(60);
     }
 
     @Test
@@ -41,9 +42,9 @@ class TrainerWorkloadServiceTest {
         service.updateTrainerWorkload(createRequest(60, ActionType.ADD));
         service.updateTrainerWorkload(createRequest(30, ActionType.ADD));
 
-        int actual = service.getMonthlyWorkload(USERNAME, YEAR, MONTH);
+        TrainerMonthlyWorkloadResponse actual = service.getMonthlyWorkload(USERNAME, YEAR, MONTH);
 
-        assertThat(actual).isEqualTo(90);
+        assertThat(actual.getTrainingSummaryDuration()).isEqualTo(90);
     }
 
     @Test
@@ -51,9 +52,9 @@ class TrainerWorkloadServiceTest {
         service.updateTrainerWorkload(createRequest(90, ActionType.ADD));
         service.updateTrainerWorkload(createRequest(30, ActionType.DELETE));
 
-        int actual = service.getMonthlyWorkload(USERNAME, YEAR, MONTH);
+        TrainerMonthlyWorkloadResponse actual = service.getMonthlyWorkload(USERNAME, YEAR, MONTH);
 
-        assertThat(actual).isEqualTo(60);
+        assertThat(actual.getTrainingSummaryDuration()).isEqualTo(60);
     }
 
     @Test
@@ -61,9 +62,9 @@ class TrainerWorkloadServiceTest {
         service.updateTrainerWorkload(createRequest(30, ActionType.ADD));
         service.updateTrainerWorkload(createRequest(60, ActionType.DELETE));
 
-        int actual = service.getMonthlyWorkload(USERNAME, YEAR, MONTH);
+        TrainerMonthlyWorkloadResponse actual = service.getMonthlyWorkload(USERNAME, YEAR, MONTH);
 
-        assertThat(actual).isEqualTo(0);
+        assertThat(actual.getTrainingSummaryDuration()).isEqualTo(0);
     }
 
     @Test
@@ -73,20 +74,20 @@ class TrainerWorkloadServiceTest {
                 .trainingDate(LocalDate.of(YEAR, Month.JULY, 10));
         service.updateTrainerWorkload(nextMonthRequest);
 
-        int actualJune = service.getMonthlyWorkload(USERNAME, YEAR, MONTH);
-        int actualJuly = service.getMonthlyWorkload(USERNAME, YEAR, 7);
+        TrainerMonthlyWorkloadResponse actualJune = service.getMonthlyWorkload(USERNAME, YEAR, MONTH);
+        TrainerMonthlyWorkloadResponse actualJuly = service.getMonthlyWorkload(USERNAME, YEAR, 7);
 
-        assertThat(actualJune).isEqualTo(60);
-        assertThat(actualJuly).isEqualTo(30);
+        assertThat(actualJune.getTrainingSummaryDuration()).isEqualTo(60);
+        assertThat(actualJuly.getTrainingSummaryDuration()).isEqualTo(30);
     }
 
     @Test
     void getMonthlyWorkload_shouldReturnZero_whenTrainerExistsButMonthNotExists() {
         service.updateTrainerWorkload(createRequest(60, ActionType.ADD));
 
-        int actual = service.getMonthlyWorkload(USERNAME, YEAR, 7);
+        TrainerMonthlyWorkloadResponse actual = service.getMonthlyWorkload(USERNAME, YEAR, 7);
 
-        assertThat(actual).isEqualTo(0);
+        assertThat(actual.getTrainingSummaryDuration()).isEqualTo(0);
     }
 
     @Test

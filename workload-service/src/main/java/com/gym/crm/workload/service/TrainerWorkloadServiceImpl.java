@@ -3,6 +3,7 @@ package com.gym.crm.workload.service;
 import com.gym.crm.workload.model.MonthSummary;
 import com.gym.crm.workload.model.TrainerWorkload;
 import com.gym.crm.workload.model.YearSummary;
+import com.gym.crm.workload.openapi.TrainerMonthlyWorkloadResponse;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
 import com.gym.crm.workload.repository.TrainerWorkloadRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,16 +39,18 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     }
 
     @Override
-    public int getMonthlyWorkload(String username, int year, int month) {
+    public TrainerMonthlyWorkloadResponse getMonthlyWorkload(String username, int year, int month) {
         TrainerWorkload workload = findWorkload(username);
 
-        return workload.getYears().stream()
+        int duration = workload.getYears().stream()
                 .filter(summary -> summary.getYear().equals(year))
                 .flatMap(summary -> summary.getMonths().stream())
                 .filter(summary -> summary.getMonth().equals(month))
                 .mapToInt(MonthSummary::getTrainingSummaryDuration)
                 .findFirst()
                 .orElse(0);
+
+        return new TrainerMonthlyWorkloadResponse(username, year, month, duration);
     }
 
     private TrainerWorkload findWorkload(String username) {
