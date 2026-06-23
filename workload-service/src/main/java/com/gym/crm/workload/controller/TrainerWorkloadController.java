@@ -1,5 +1,6 @@
 package com.gym.crm.workload.controller;
 
+import com.gym.crm.workload.openapi.TrainerMonthlyWorkloadResponse;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
 import com.gym.crm.workload.service.TrainerWorkloadServiceImpl;
 import jakarta.validation.Valid;
@@ -28,10 +29,11 @@ public class TrainerWorkloadController {
     }
 
     @GetMapping("/{username}")
-    public ResponseEntity<Integer> getTrainerMonthlyWorkload(@PathVariable String username, @RequestParam int year,
-                                                             @RequestParam int month) {
-        int monthlyWorkload = service.getMonthlyWorkload(username, year, month);
+    public ResponseEntity<TrainerMonthlyWorkloadResponse> getTrainerMonthlyWorkload(@PathVariable String username,
+                                                                                    @RequestParam int year,
+                                                                                    @RequestParam int month) {
+        TrainerMonthlyWorkloadResponse response = service.getMonthlyWorkload(username, year, month);
 
-        return ResponseEntity.ok(monthlyWorkload);
+        return ResponseEntity.ok(response);
     }
 }
