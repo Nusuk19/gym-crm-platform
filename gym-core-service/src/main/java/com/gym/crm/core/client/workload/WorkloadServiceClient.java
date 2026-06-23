@@ -25,6 +25,7 @@ public class WorkloadServiceClient {
 
     private static final String WORKLOAD_CB = "workload-service";
     private static final String TRAINER_WORKLOADS_PATH = "/trainer-workloads";
+    private static final String CANNOT_CONNECT_MSG = "Cannot connect to ";
 
     private final RestClient workloadRestClient;
 
@@ -60,7 +61,7 @@ public class WorkloadServiceClient {
 
     private RuntimeException mapToServiceException(Throwable throwable) {
         if (throwable instanceof CallNotPermittedException) {
-            return new ServiceConnectionException("Cannot connect to " + WORKLOAD_CB + " (circuit breaker open)");
+            return new ServiceConnectionException(CANNOT_CONNECT_MSG + WORKLOAD_CB + " (circuit breaker open)");
         }
 
         Throwable cause = getRootCause(throwable);
@@ -72,10 +73,10 @@ public class WorkloadServiceClient {
             return new ServiceTimeoutException(WORKLOAD_CB + " did not respond within 3s");
         }
         if (cause instanceof ConnectException) {
-            return new ServiceConnectionException("Cannot connect to " + WORKLOAD_CB);
+            return new ServiceConnectionException(CANNOT_CONNECT_MSG + WORKLOAD_CB);
         }
         if (throwable instanceof ResourceAccessException) {
-            return new ServiceConnectionException("Cannot connect to " + WORKLOAD_CB);
+            return new ServiceConnectionException(CANNOT_CONNECT_MSG + WORKLOAD_CB);
         }
 
         return new RuntimeException("Unexpected error while communicating with " + WORKLOAD_CB);
