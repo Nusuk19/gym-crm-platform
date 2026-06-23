@@ -1,4 +1,4 @@
-package com.gym.crm.core.logging;
+package com.gym.crm.workload.logging;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,8 +21,7 @@ public class TransactionIdFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String transactionId = resolveTransactionId(request);
 
-        MDC.put(TRANSACTION_ID_KEY, transactionId);
-        response.setHeader(TRANSACTION_ID_HEADER, transactionId);
+        bindTransactionId(response, transactionId);
 
         try {
             filterChain.doFilter(request, response);
@@ -31,11 +30,19 @@ public class TransactionIdFilter extends OncePerRequestFilter {
         }
     }
 
+    private void bindTransactionId(HttpServletResponse response, String transactionId) {
+        MDC.put(TRANSACTION_ID_KEY, transactionId);
+        response.setHeader(TRANSACTION_ID_HEADER, transactionId);
+    }
+
     private String resolveTransactionId(HttpServletRequest request) {
         String incoming = request.getHeader(TRANSACTION_ID_HEADER);
-
-        return incoming != null && !incoming.isBlank()
+        return isValidTransactionId(incoming)
                 ? incoming
                 : UUID.randomUUID().toString();
+    }
+
+    private boolean isValidTransactionId(String value) {
+        return value != null && !value.isBlank();
     }
 }

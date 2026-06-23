@@ -36,7 +36,7 @@ class WorkloadUpdateListenerTest {
     @Test
     void handle_shouldCallClientForEachRequest() {
         TrainerWorkloadRequest request = buildRequest();
-        WorkloadUpdateEvent event = new WorkloadUpdateEvent(List.of(request), JWT_TOKEN);
+        WorkloadUpdateEvent event = new WorkloadUpdateEvent(List.of(request), JWT_TOKEN, null);
 
         listener.handle(event);
 
@@ -46,7 +46,7 @@ class WorkloadUpdateListenerTest {
     @Test
     void handle_shouldNotThrow_whenClientFails() {
         TrainerWorkloadRequest request = buildRequest();
-        WorkloadUpdateEvent event = new WorkloadUpdateEvent(List.of(request), JWT_TOKEN);
+        WorkloadUpdateEvent event = new WorkloadUpdateEvent(List.of(request), JWT_TOKEN, null);
 
         doThrow(new RuntimeException("Connection failed")).when(client).updateTrainerWorkload(request);
 
@@ -58,7 +58,7 @@ class WorkloadUpdateListenerTest {
     @Test
     void handle_shouldClearSecurityContext_afterProcessing() {
         TrainerWorkloadRequest request = buildRequest();
-        WorkloadUpdateEvent event = new WorkloadUpdateEvent(List.of(request), JWT_TOKEN);
+        WorkloadUpdateEvent event = new WorkloadUpdateEvent(List.of(request), JWT_TOKEN, null);
 
         listener.handle(event);
 
@@ -68,7 +68,17 @@ class WorkloadUpdateListenerTest {
     @Test
     void handle_shouldNotThrow_whenJwtTokenIsNull() {
         TrainerWorkloadRequest request = buildRequest();
-        WorkloadUpdateEvent event = new WorkloadUpdateEvent(List.of(request), null);
+        WorkloadUpdateEvent event = new WorkloadUpdateEvent(List.of(request), null, null);
+
+        listener.handle(event);
+
+        verify(client).updateTrainerWorkload(request);
+    }
+
+    @Test
+    void handle_shouldRestoreMdc_whenTransactionIdPresent() {
+        TrainerWorkloadRequest request = buildRequest();
+        WorkloadUpdateEvent event = new WorkloadUpdateEvent(List.of(request), JWT_TOKEN, "tx-123");
 
         listener.handle(event);
 

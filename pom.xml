@@ -17,6 +17,7 @@
     </parent>
 
     <modules>
+        <module>common-logging</module>
         <module>gym-core-service</module>
         <module>workload-service</module>
         <module>discovery-service</module>

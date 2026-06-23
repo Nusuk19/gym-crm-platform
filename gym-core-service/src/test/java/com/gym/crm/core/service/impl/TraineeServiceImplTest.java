@@ -159,7 +159,7 @@ class TraineeServiceImplTest {
         verify(validator).requireNonBlank(USERNAME, "Username cannot be blank");
         verify(traineeRepository).findByUserUsername(USERNAME);
         verify(traineeRepository).delete(traineeWithTrainings);
-        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of(), jwtToken));
+        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of(), jwtToken, null));
     }
 
     @Test
