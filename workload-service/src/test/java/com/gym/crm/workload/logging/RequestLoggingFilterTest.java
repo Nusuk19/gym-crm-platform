@@ -56,7 +56,6 @@ class RequestLoggingFilterTest {
         MockHttpServletRequest request = buildRequest("GET", "/trainer-workloads/status", null);
         MockHttpServletResponse response = new MockHttpServletResponse();
         String responseBody = "{\"status\":\"ok\"}";
-
         FilterChain chain = (req, res) -> {
             res.getWriter().write(responseBody);
             res.getWriter().flush();
@@ -64,7 +63,8 @@ class RequestLoggingFilterTest {
 
         filter.doFilterInternal(request, response, chain);
 
-        assertThat(response.getContentAsString()).isEqualTo(responseBody);
+        String actual = response.getContentAsString();
+        assertThat(actual).isEqualTo(responseBody);
     }
 
     @Test

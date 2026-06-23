@@ -29,8 +29,9 @@ class ServiceLoggingAspectTest {
 
     @Test
     void aspect_shouldReturnResultFromTargetMethod() {
-        String result = proxy.greet("world");
-        assertThat(result).isEqualTo("hello world");
+        String actual = proxy.greet("world");
+
+        assertThat(actual).isEqualTo("hello world");
     }
 
     @Test
@@ -44,15 +45,16 @@ class ServiceLoggingAspectTest {
     void aspect_shouldWorkWithTransactionIdInMdc() {
         MDC.put(TransactionIdFilter.TRANSACTION_ID_KEY, "test-tx-id");
 
-        String result = proxy.greet("mdc");
+        String actual = proxy.greet("mdc");
 
-        assertThat(result).isEqualTo("hello mdc");
+        assertThat(actual).isEqualTo("hello mdc");
     }
 
     @Test
     void aspect_shouldWorkWithoutTransactionIdInMdc() {
-        String result = proxy.greet("no-mdc");
-        assertThat(result).isEqualTo("hello no-mdc");
+        String actual = proxy.greet("no-mdc");
+
+        assertThat(actual).isEqualTo("hello no-mdc");
     }
 
     static class SampleService {

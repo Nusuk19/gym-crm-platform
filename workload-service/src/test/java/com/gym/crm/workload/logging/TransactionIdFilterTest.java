@@ -10,6 +10,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import static com.gym.crm.workload.logging.TransactionIdFilter.TRANSACTION_ID_HEADER;
 import static com.gym.crm.workload.logging.TransactionIdFilter.TRANSACTION_ID_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -30,7 +32,8 @@ class TransactionIdFilterTest {
 
         filter.doFilterInternal(request, response, chain);
 
-        assertThat(response.getHeader(TRANSACTION_ID_HEADER)).isNotNull().isNotBlank();
+        String actual = response.getHeader(TRANSACTION_ID_HEADER);
+        assertThat(actual).isNotNull().isNotBlank();
         verify(chain).doFilter(request, response);
     }
 
@@ -44,7 +47,8 @@ class TransactionIdFilterTest {
 
         filter.doFilterInternal(request, response, chain);
 
-        assertThat(response.getHeader(TRANSACTION_ID_HEADER)).isEqualTo(existingId);
+        String actual = response.getHeader(TRANSACTION_ID_HEADER);
+        assertThat(actual).isEqualTo(existingId);
     }
 
     @Test
@@ -63,13 +67,9 @@ class TransactionIdFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
+        doThrow(new RuntimeException("chain error")).when(chain).doFilter(request, response);
 
-        org.mockito.Mockito.doThrow(new RuntimeException("chain error")).when(chain).doFilter(request, response);
-
-        try {
-            filter.doFilterInternal(request, response, chain);
-        } catch (RuntimeException ignored) {
-        }
+        assertThatThrownBy(() -> filter.doFilterInternal(request, response, chain)).isInstanceOf(RuntimeException.class);
 
         assertThat(MDC.get(TRANSACTION_ID_KEY)).isNull();
     }

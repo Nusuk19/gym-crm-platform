@@ -33,7 +33,6 @@ public abstract class AbstractServiceLoggingAspect {
             return result;
         } catch (Exception ex) {
             long duration = System.currentTimeMillis() - start;
-
             log.error("OPERATION ERROR  transactionId={} {}.{}() duration={}ms error={}: {}",
                     transactionId, className, methodName, duration,
                     ex.getClass().getSimpleName(), ex.getMessage());

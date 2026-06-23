@@ -24,9 +24,9 @@ class AbstractServiceLoggingAspectTest {
     void logServiceOperation_shouldReturnResult() throws Throwable {
         ProceedingJoinPoint joinPoint = mockJoinPoint("greet", "hello world");
 
-        Object result = aspect.logServiceOperation(joinPoint);
+        Object actual = aspect.logServiceOperation(joinPoint);
 
-        assertThat(result).isEqualTo("hello world");
+        assertThat(actual).isEqualTo("hello world");
     }
 
     @Test
@@ -44,18 +44,18 @@ class AbstractServiceLoggingAspectTest {
         MDC.put(AbstractServiceLoggingAspect.TRANSACTION_ID_KEY, "test-tx-id");
         ProceedingJoinPoint joinPoint = mockJoinPoint("greet", "hello");
 
-        Object result = aspect.logServiceOperation(joinPoint);
+        Object actual = aspect.logServiceOperation(joinPoint);
 
-        assertThat(result).isEqualTo("hello");
+        assertThat(actual).isEqualTo("hello");
     }
 
     @Test
     void logServiceOperation_shouldWorkWithoutTransactionIdInMdc() throws Throwable {
         ProceedingJoinPoint joinPoint = mockJoinPoint("greet", "hello");
 
-        Object result = aspect.logServiceOperation(joinPoint);
+        Object actual = aspect.logServiceOperation(joinPoint);
 
-        assertThat(result).isEqualTo("hello");
+        assertThat(actual).isEqualTo("hello");
     }
 
     private ProceedingJoinPoint mockJoinPoint(String methodName, Object returnValue) throws Throwable {
