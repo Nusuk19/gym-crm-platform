@@ -42,8 +42,10 @@ class WorkloadServiceClientCircuitBreakerTest {
     }
 
     @Test
-    void updateTrainerWorkload_shouldThrowServiceException_whenServiceFails() {
-        assertThatThrownBy(() -> client.updateTrainerWorkload(buildRequest())).isInstanceOf(RuntimeException.class);
+    void updateTrainerWorkload_shouldThrowRuntimeException_whenServiceFails() {
+        TrainerWorkloadRequest request = buildRequest();
+
+        assertThatThrownBy(() -> client.updateTrainerWorkload(request)).isInstanceOf(RuntimeException.class);
     }
 
     private TrainerWorkloadRequest buildRequest() {
