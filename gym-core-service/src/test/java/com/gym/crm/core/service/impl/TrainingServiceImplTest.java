@@ -100,7 +100,7 @@ class TrainingServiceImplTest {
         verify(trainingRepository).save(any(Training.class));
         verify(gymMetrics).incrementTrainingsCreated();
         verify(workloadRequestMapper).toRequest(savedTraining, ActionType.ADD);
-        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest), jwtToken));
+        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest), jwtToken, null));
     }
 
     @Test

@@ -6,9 +6,9 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/app.log</file>
+        <file>logs/workload.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>logs/workload.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -16,12 +16,12 @@
         </encoder>
     </appender>
 
-    <logger name="com.gym.crm.core.logging" level="DEBUG" additivity="false">
+    <logger name="com.gym.crm.workload.logging" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </logger>
 
-    <logger name="com.gym.crm" level="INFO" additivity="false">
+    <logger name="com.gym.crm.workload" level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </logger>

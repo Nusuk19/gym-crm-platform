@@ -65,7 +65,7 @@ public class TrainingServiceImpl implements TrainingService {
 
         Training saved = trainingRepository.save(training);
         TrainerWorkloadRequest workloadRequest = workloadRequestMapper.toRequest(saved, ActionType.ADD);
-        publisher.publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest), jwtTokenExtractor.extract()));
+        publisher.publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest), jwtTokenExtractor.extract(), org.slf4j.MDC.get(com.gym.crm.core.logging.TransactionIdFilter.TRANSACTION_ID_KEY)));
 
         gymMetrics.incrementTrainingsCreated();
         log.info("Training created with id={}, workload event published", saved.getId());

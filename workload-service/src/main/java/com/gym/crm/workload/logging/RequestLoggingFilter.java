@@ -1,4 +1,4 @@
-package com.gym.crm.core.logging;
+package com.gym.crm.workload.logging;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,33 +16,30 @@ import java.nio.charset.StandardCharsets;
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
     private static final String LOG_MESSAGE =
-            "REST call completed. transactionId={}, method={}, endpoint={}, query={}, requestBody={}, responseStatus={}, responseBody={}, duration={}ms";
+            "REST call completed. transactionId={}, method={}, endpoint={}, query={}, requestBody={}, responseStatus={}, duration={}ms";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
-        ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);
         long startTime = System.currentTimeMillis();
 
         try {
-            filterChain.doFilter(wrappedRequest, wrappedResponse);
+            filterChain.doFilter(wrappedRequest, response);
         } finally {
-            logRestCall(wrappedRequest, wrappedResponse, System.currentTimeMillis() - startTime);
-            wrappedResponse.copyBodyToResponse();
+            logRestCall(wrappedRequest, response, System.currentTimeMillis() - startTime);
         }
     }
 
-    private void logRestCall(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, long durationMs) {
+    private void logRestCall(ContentCachingRequestWrapper request, HttpServletResponse response, long durationMs) {
         Object[] args = {
                 MDC.get(TransactionIdFilter.TRANSACTION_ID_KEY),
                 request.getMethod(),
                 request.getRequestURI(),
                 request.getQueryString(),
-                maskSensitiveData(getRequestBody(request)),
+                getRequestBody(request),
                 response.getStatus(),
-                getResponseBody(response),
                 durationMs
         };
 
@@ -61,17 +57,5 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         byte[] content = request.getContentAsByteArray();
 
         return content.length == 0 ? "" : new String(content, StandardCharsets.UTF_8);
-    }
-
-    private String getResponseBody(ContentCachingResponseWrapper response) {
-        byte[] content = response.getContentAsByteArray();
-
-        return content.length == 0 ? "" : new String(content, StandardCharsets.UTF_8);
-    }
-
-    String maskSensitiveData(String body) {
-        if (body == null || body.isBlank()) return "";
-
-        return body.replaceAll("(\"(?:password|oldPassword|newPassword)\"\\s*:\\s*)\"[^\"]*\"", "$1\"***\"");
     }
 }

@@ -1,7 +1,8 @@
-package com.gym.crm.core.logging;
+package com.gym.crm.workload.logging;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -13,8 +14,6 @@ import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -25,18 +24,18 @@ class RequestLoggingFilterTest {
 
     @Test
     void doFilterInternal_shouldContinueFilterChain() throws ServletException, IOException {
-        MockHttpServletRequest request = buildRequest("GET", "/api/v1/trainees/John.Doe", null);
+        MockHttpServletRequest request = buildRequest("PUT", "/trainer-workloads", null);
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
 
         filter.doFilterInternal(request, response, chain);
 
-        verify(chain).doFilter(any(ContentCachingRequestWrapper.class), any(ContentCachingResponseWrapper.class));
+        verify(chain).doFilter(any(ContentCachingRequestWrapper.class), any(HttpServletResponse.class));
     }
 
     @Test
     void doFilterInternal_whenEmptyBody_shouldNotThrow() {
-        MockHttpServletRequest request = buildRequest("GET", "/api/v1/trainees/John.Doe", null);
+        MockHttpServletRequest request = buildRequest("GET", "/trainer-workloads/status", null);
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
 
@@ -45,19 +44,19 @@ class RequestLoggingFilterTest {
 
     @Test
     void doFilterInternal_whenRequestHasJsonBody_shouldNotThrow() {
-        MockHttpServletRequest request = buildRequest("POST", "/api/v1/auth/login",
-                "{\"username\":\"john.doe\",\"password\":\"password123\"}");
+        MockHttpServletRequest request = buildRequest("PUT", "/trainer-workloads",
+                "{\"trainerUsername\":\"john.doe\",\"actionType\":\"ADD\"}");
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
 
-        assertDoesNotThrow(() -> filter.doFilterInternal(request, response, chain));
+        assertThatCode(() -> filter.doFilterInternal(request, response, chain)).doesNotThrowAnyException();
     }
 
     @Test
     void doFilterInternal_shouldFlushResponseBodyToClient() throws ServletException, IOException {
-        MockHttpServletRequest request = buildRequest("GET", "/api/v1/trainees", null);
+        MockHttpServletRequest request = buildRequest("GET", "/trainer-workloads/status", null);
         MockHttpServletResponse response = new MockHttpServletResponse();
-        String responseBody = "{\"id\":1}";
+        String responseBody = "{\"status\":\"ok\"}";
 
         FilterChain chain = (req, res) -> {
             res.getWriter().write(responseBody);
@@ -71,7 +70,7 @@ class RequestLoggingFilterTest {
 
     @Test
     void doFilterInternal_whenResponseIs4xx_shouldNotThrow() throws ServletException, IOException {
-        MockHttpServletRequest request = buildRequest("PUT", "/api/v1/trainees", null);
+        MockHttpServletRequest request = buildRequest("PUT", "/trainer-workloads", null);
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(400);
         FilterChain chain = mock(FilterChain.class);
@@ -81,54 +80,12 @@ class RequestLoggingFilterTest {
 
     @Test
     void doFilterInternal_whenResponseIs5xx_shouldNotThrow() throws ServletException, IOException {
-        MockHttpServletRequest request = buildRequest("PUT", "/api/v1/trainees", null);
+        MockHttpServletRequest request = buildRequest("PUT", "/trainer-workloads", null);
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(500);
         FilterChain chain = mock(FilterChain.class);
 
         assertThatCode(() -> filter.doFilterInternal(request, response, chain)).doesNotThrowAnyException();
-    }
-
-    @Test
-    void maskSensitiveData_shouldMaskPasswordField() {
-        String body = "{\"username\":\"john.doe\",\"password\":\"secret123\"}";
-        String actual = filter.maskSensitiveData(body);
-        assertEquals("{\"username\":\"john.doe\",\"password\":\"***\"}", actual);
-    }
-
-    @Test
-    void maskSensitiveData_shouldMaskOldAndNewPassword() {
-        String body = """
-                {
-                  "username": "john.doe",
-                  "oldPassword": "oldSecret",
-                  "newPassword": "newSecret"
-                }
-                """;
-        String expected = """
-                {
-                  "username": "john.doe",
-                  "oldPassword": "***",
-                  "newPassword": "***"
-                }
-                """;
-        assertEquals(expected, filter.maskSensitiveData(body));
-    }
-
-    @Test
-    void maskSensitiveData_whenNull_shouldReturnEmptyString() {
-        assertEquals("", filter.maskSensitiveData(null));
-    }
-
-    @Test
-    void maskSensitiveData_whenBlank_shouldReturnEmptyString() {
-        assertEquals("", filter.maskSensitiveData("   "));
-    }
-
-    @Test
-    void maskSensitiveData_shouldNotMaskNonPasswordFields() {
-        String body = "{\"username\":\"john.doe\",\"firstName\":\"John\"}";
-        assertEquals(body, filter.maskSensitiveData(body));
     }
 
     private MockHttpServletRequest buildRequest(String method, String uri, String body) {

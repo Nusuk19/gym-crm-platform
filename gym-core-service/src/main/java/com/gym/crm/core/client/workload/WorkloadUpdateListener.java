@@ -1,8 +1,10 @@
 package com.gym.crm.core.client.workload;
 
 import com.gym.crm.core.client.workload.model.TrainerWorkloadRequest;
+import com.gym.crm.core.logging.TransactionIdFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -22,9 +24,11 @@ public class WorkloadUpdateListener {
     public void handle(WorkloadUpdateEvent event) {
         try {
             restoreSecurityContext(event.jwtToken());
+            restoreMdc(event.transactionId());
             event.requests().forEach(this::updateTrainerWorkload);
         } finally {
             SecurityContextHolder.clearContext();
+            MDC.remove(TransactionIdFilter.TRANSACTION_ID_KEY);
         }
     }
 
@@ -36,6 +40,12 @@ public class WorkloadUpdateListener {
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(jwtToken, jwtToken, List.of());
         SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private void restoreMdc(String transactionId) {
+        if (transactionId != null) {
+            MDC.put(TransactionIdFilter.TRANSACTION_ID_KEY, transactionId);
+        }
     }
 
     private void updateTrainerWorkload(TrainerWorkloadRequest request) {

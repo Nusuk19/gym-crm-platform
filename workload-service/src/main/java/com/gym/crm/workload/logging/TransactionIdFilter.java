@@ -1,4 +1,4 @@
-package com.gym.crm.core.logging;
+package com.gym.crm.workload.logging;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -33,7 +33,6 @@ public class TransactionIdFilter extends OncePerRequestFilter {
 
     private String resolveTransactionId(HttpServletRequest request) {
         String incoming = request.getHeader(TRANSACTION_ID_HEADER);
-
         return incoming != null && !incoming.isBlank()
                 ? incoming
                 : UUID.randomUUID().toString();

@@ -129,7 +129,7 @@ public class TraineeServiceImpl implements TraineeService {
                 .toList();
 
         traineeRepository.delete(trainee);
-        publisher.publishEvent(new WorkloadUpdateEvent(workloadRequests, jwtTokenExtractor.extract()));
+        publisher.publishEvent(new WorkloadUpdateEvent(workloadRequests, jwtTokenExtractor.extract(), org.slf4j.MDC.get(com.gym.crm.core.logging.TransactionIdFilter.TRANSACTION_ID_KEY)));
 
         log.info("Trainee deleted: username={}, workload events published: {}", username, workloadRequests.size());
     }

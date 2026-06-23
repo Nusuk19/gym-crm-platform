@@ -1,6 +1,8 @@
 package com.gym.crm.core.client.workload;
 
+import com.gym.crm.core.logging.TransactionIdFilter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -26,6 +28,11 @@ public class JwtPropagationInterceptor implements ClientHttpRequestInterceptor {
             request.getHeaders().set(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token);
         } else {
             log.warn("No JWT token found in SecurityContext, request to workload-service will be unauthenticated");
+        }
+
+        String transactionId = MDC.get(TransactionIdFilter.TRANSACTION_ID_KEY);
+        if (transactionId != null) {
+            request.getHeaders().set(TransactionIdFilter.TRANSACTION_ID_HEADER, transactionId);
         }
 
         return execution.execute(request, body);
