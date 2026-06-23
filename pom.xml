@@ -22,7 +22,6 @@
         <module>workload-service</module>
         <module>discovery-service</module>
         <module>gateway-service</module>
-        <module>common-logging</module>
     </modules>
 
     <properties>
