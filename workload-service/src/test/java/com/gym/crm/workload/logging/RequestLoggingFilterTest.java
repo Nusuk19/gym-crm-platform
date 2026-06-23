@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.util.ContentCachingRequestWrapper;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -69,7 +68,7 @@ class RequestLoggingFilterTest {
     }
 
     @Test
-    void doFilterInternal_whenResponseIs4xx_shouldNotThrow() throws ServletException, IOException {
+    void doFilterInternal_whenResponseIs4xx_shouldNotThrow() {
         MockHttpServletRequest request = buildRequest("PUT", "/trainer-workloads", null);
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(400);
@@ -79,7 +78,7 @@ class RequestLoggingFilterTest {
     }
 
     @Test
-    void doFilterInternal_whenResponseIs5xx_shouldNotThrow() throws ServletException, IOException {
+    void doFilterInternal_whenResponseIs5xx_shouldNotThrow() {
         MockHttpServletRequest request = buildRequest("PUT", "/trainer-workloads", null);
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(500);

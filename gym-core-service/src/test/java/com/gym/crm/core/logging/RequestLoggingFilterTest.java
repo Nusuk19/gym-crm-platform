@@ -70,7 +70,7 @@ class RequestLoggingFilterTest {
     }
 
     @Test
-    void doFilterInternal_whenResponseIs4xx_shouldNotThrow() throws ServletException, IOException {
+    void doFilterInternal_whenResponseIs4xx_shouldNotThrow() {
         MockHttpServletRequest request = buildRequest("PUT", "/api/v1/trainees", null);
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(400);
@@ -80,7 +80,7 @@ class RequestLoggingFilterTest {
     }
 
     @Test
-    void doFilterInternal_whenResponseIs5xx_shouldNotThrow() throws ServletException, IOException {
+    void doFilterInternal_whenResponseIs5xx_shouldNotThrow() {
         MockHttpServletRequest request = buildRequest("PUT", "/api/v1/trainees", null);
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(500);
