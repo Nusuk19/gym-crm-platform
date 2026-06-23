@@ -57,7 +57,7 @@ eureka:
 resilience4j:
   circuitbreaker:
     instances:
-      workload:
+      workload-service:
         sliding-window-size: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
