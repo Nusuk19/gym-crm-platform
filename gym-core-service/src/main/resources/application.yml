@@ -21,6 +21,9 @@ server:
 app:
   api:
     base-path: /api/v1
+  jms:
+    queue:
+      workload: trainer-workload-queue
 
 password:
   length: 10
@@ -42,10 +45,6 @@ management:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000
-
-workload:
-  service:
-    base-url: ${WORKLOAD_SERVICE_URL}
 
 eureka:
   client:
