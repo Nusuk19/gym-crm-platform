@@ -35,7 +35,6 @@ class WorkloadMessageProducerTest {
     private static final int MONTH = 6;
     private static final int DAY = 10;
     private static final int DURATION = 60;
-    private static final String TRANSACTION_ID = "tx-123";
 
     @Mock
     private JmsTemplate jmsTemplate;
