@@ -13,6 +13,7 @@ app:
   jms:
     queue:
       workload: trainer-workload-queue
+      dlq: ActiveMQ.DLQ
 
 eureka:
   client:
