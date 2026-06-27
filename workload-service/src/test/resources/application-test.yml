@@ -2,6 +2,17 @@ spring:
   jms:
     listener:
       auto-startup: false
+  activemq:
+    broker-url: vm://localhost?broker.persistent=false
+    user: gym-crm
+    password: gym-crm
+
+app:
+  jms:
+    redelivery:
+      maximum-redeliveries: 0
+      initial-delay-ms: 0
+      delay-ms: 0
 
 eureka:
   client:

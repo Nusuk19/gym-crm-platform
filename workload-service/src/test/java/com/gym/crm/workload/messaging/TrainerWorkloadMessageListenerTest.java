@@ -1,6 +1,6 @@
 package com.gym.crm.workload.messaging;
 
-import com.gym.crm.workload.exception.InvalidMessageException;
+import com.gym.crm.workload.exception.WorkloadMessageProcessingException;
 import com.gym.crm.workload.logging.TransactionIdFilter;
 import com.gym.crm.workload.openapi.ActionType;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
@@ -18,6 +18,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,6 +43,8 @@ class TrainerWorkloadMessageListenerTest {
     private TrainerWorkloadMessageMapper mapper;
     @Mock
     private WorkloadMessageValidator validator;
+    @Mock
+    private DeadLetterQueueProducer dlqProducer;
 
     @InjectMocks
     private TrainerWorkloadMessageListener listener;
@@ -57,6 +61,7 @@ class TrainerWorkloadMessageListenerTest {
         verify(validator).validate(message);
         verify(mapper).toRequest(message);
         verify(service).updateTrainerWorkload(expected);
+        verify(dlqProducer, never()).send(any(), anyString());
     }
 
     @Test
@@ -64,9 +69,9 @@ class TrainerWorkloadMessageListenerTest {
         TrainerWorkloadMessage message = buildMessage();
         when(validator.validate(message)).thenReturn(Optional.of(VALIDATION_ERROR));
 
-        assertThatThrownBy(() -> listener.handle(message, TRANSACTION_ID))
-                .isInstanceOf(InvalidMessageException.class)
-                .hasMessage(VALIDATION_ERROR);
+        listener.handle(message, TRANSACTION_ID);
+
+        verify(dlqProducer).send(message, VALIDATION_ERROR);
         verify(mapper, never()).toRequest(any());
         verify(service, never()).updateTrainerWorkload(any());
     }
@@ -83,6 +88,16 @@ class TrainerWorkloadMessageListenerTest {
     }
 
     @Test
+    void handle_shouldClearMdc_afterDlqRouting() {
+        TrainerWorkloadMessage message = buildMessage();
+        when(validator.validate(message)).thenReturn(Optional.of(VALIDATION_ERROR));
+
+        listener.handle(message, TRANSACTION_ID);
+
+        assertThat(MDC.get(TransactionIdFilter.TRANSACTION_ID_KEY)).isNull();
+    }
+
+    @Test
     void handle_shouldUseUnknown_whenTransactionIdIsNull() {
         TrainerWorkloadMessage message = buildMessage();
         when(validator.validate(message)).thenReturn(Optional.empty());
@@ -92,6 +107,21 @@ class TrainerWorkloadMessageListenerTest {
         listener.handle(message, null);
 
         verify(service).updateTrainerWorkload(expected);
+    }
+
+    @Test
+    void handle_shouldWrapAndPropagate_whenServiceThrowsRuntimeException() {
+        TrainerWorkloadMessage message = buildMessage();
+        RuntimeException cause = new RuntimeException("DB unavailable");
+        when(validator.validate(message)).thenReturn(Optional.empty());
+        when(mapper.toRequest(message)).thenReturn(new TrainerWorkloadRequest());
+        doThrow(cause).when(service).updateTrainerWorkload(any());
+
+        assertThatThrownBy(() -> listener.handle(message, TRANSACTION_ID))
+                .isInstanceOf(WorkloadMessageProcessingException.class)
+                .hasMessage("Failed to process workload message")
+                .hasCause(cause);
+        verify(dlqProducer, never()).send(any(), anyString());
     }
 
     private TrainerWorkloadMessage buildMessage() {
