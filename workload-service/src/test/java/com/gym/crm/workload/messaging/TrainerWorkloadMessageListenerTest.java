@@ -1,5 +1,6 @@
 package com.gym.crm.workload.messaging;
 
+import com.gym.crm.workload.exception.InvalidMessageException;
 import com.gym.crm.workload.logging.TransactionIdFilter;
 import com.gym.crm.workload.openapi.ActionType;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
@@ -12,8 +13,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,11 +33,14 @@ class TrainerWorkloadMessageListenerTest {
     private static final int DAY = 10;
     private static final int DURATION = 60;
     private static final String TRANSACTION_ID = "tx-123";
+    private static final String VALIDATION_ERROR = "trainerUsername is missing";
 
     @Mock
     private TrainerWorkloadService service;
     @Mock
     private TrainerWorkloadMessageMapper mapper;
+    @Mock
+    private WorkloadMessageValidator validator;
 
     @InjectMocks
     private TrainerWorkloadMessageListener listener;
@@ -41,17 +49,32 @@ class TrainerWorkloadMessageListenerTest {
     void handle_shouldProcessMessageAndCallService() {
         TrainerWorkloadMessage message = buildMessage();
         TrainerWorkloadRequest expected = new TrainerWorkloadRequest();
+        when(validator.validate(message)).thenReturn(Optional.empty());
         when(mapper.toRequest(message)).thenReturn(expected);
 
         listener.handle(message, TRANSACTION_ID);
 
+        verify(validator).validate(message);
         verify(mapper).toRequest(message);
         verify(service).updateTrainerWorkload(expected);
     }
 
     @Test
+    void handle_shouldThrowInvalidMessageException_whenMessageIsInvalid() {
+        TrainerWorkloadMessage message = buildMessage();
+        when(validator.validate(message)).thenReturn(Optional.of(VALIDATION_ERROR));
+
+        assertThatThrownBy(() -> listener.handle(message, TRANSACTION_ID))
+                .isInstanceOf(InvalidMessageException.class)
+                .hasMessage(VALIDATION_ERROR);
+        verify(mapper, never()).toRequest(any());
+        verify(service, never()).updateTrainerWorkload(any());
+    }
+
+    @Test
     void handle_shouldClearMdcAfterProcessing() {
         TrainerWorkloadMessage message = buildMessage();
+        when(validator.validate(message)).thenReturn(Optional.empty());
         when(mapper.toRequest(message)).thenReturn(new TrainerWorkloadRequest());
 
         listener.handle(message, TRANSACTION_ID);
@@ -62,6 +85,7 @@ class TrainerWorkloadMessageListenerTest {
     @Test
     void handle_shouldUseUnknown_whenTransactionIdIsNull() {
         TrainerWorkloadMessage message = buildMessage();
+        when(validator.validate(message)).thenReturn(Optional.empty());
         TrainerWorkloadRequest expected = new TrainerWorkloadRequest();
         when(mapper.toRequest(message)).thenReturn(expected);
 
