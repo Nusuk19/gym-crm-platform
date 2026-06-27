@@ -1,14 +1,14 @@
 package com.gym.crm.core.service.impl;
 
 import com.gym.crm.core.actuator.metrics.GymMetrics;
-import com.gym.crm.core.client.workload.WorkloadRequestMapper;
-import com.gym.crm.core.client.workload.WorkloadUpdateEvent;
-import com.gym.crm.core.client.workload.model.ActionType;
-import com.gym.crm.core.client.workload.model.TrainerWorkloadRequest;
 import com.gym.crm.core.dao.search.filters.TraineeTrainingSearchFilter;
 import com.gym.crm.core.dao.search.filters.TrainerTrainingSearchFilter;
 import com.gym.crm.core.dto.request.CreateTrainingRequest;
 import com.gym.crm.core.exception.EntityNotFoundException;
+import com.gym.crm.core.messaging.workload.ActionType;
+import com.gym.crm.core.messaging.workload.TrainerWorkloadMessage;
+import com.gym.crm.core.messaging.workload.WorkloadMessageMapper;
+import com.gym.crm.core.messaging.workload.WorkloadUpdateEvent;
 import com.gym.crm.core.model.Trainee;
 import com.gym.crm.core.model.Trainer;
 import com.gym.crm.core.model.Training;
@@ -16,7 +16,6 @@ import com.gym.crm.core.repository.TraineeRepository;
 import com.gym.crm.core.repository.TrainerRepository;
 import com.gym.crm.core.repository.TrainingRepository;
 import com.gym.crm.core.repository.specification.TrainingSpecifications;
-import com.gym.crm.core.security.JwtTokenExtractor;
 import com.gym.crm.core.service.TrainingService;
 import com.gym.crm.core.service.common.EntityValidator;
 import lombok.RequiredArgsConstructor;
@@ -37,9 +36,8 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainerRepository trainerRepository;
     private final EntityValidator validator;
     private final GymMetrics gymMetrics;
-    private final WorkloadRequestMapper workloadRequestMapper;
     private final ApplicationEventPublisher publisher;
-    private final JwtTokenExtractor jwtTokenExtractor;
+    private final WorkloadMessageMapper workloadMessageMapper;
 
     @Override
     @Transactional
@@ -64,8 +62,8 @@ public class TrainingServiceImpl implements TrainingService {
         validator.validateTraining(training);
 
         Training saved = trainingRepository.save(training);
-        TrainerWorkloadRequest workloadRequest = workloadRequestMapper.toRequest(saved, ActionType.ADD);
-        publisher.publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest), jwtTokenExtractor.extract(), org.slf4j.MDC.get(com.gym.crm.core.logging.TransactionIdFilter.TRANSACTION_ID_KEY)));
+        TrainerWorkloadMessage message = workloadMessageMapper.toMessage(saved, ActionType.ADD);
+        publisher.publishEvent(new WorkloadUpdateEvent(List.of(message)));
 
         gymMetrics.incrementTrainingsCreated();
         log.info("Training created with id={}, workload event published", saved.getId());

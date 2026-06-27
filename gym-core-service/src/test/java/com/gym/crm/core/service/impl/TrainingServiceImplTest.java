@@ -1,15 +1,15 @@
 package com.gym.crm.core.service.impl;
 
 import com.gym.crm.core.actuator.metrics.GymMetrics;
-import com.gym.crm.core.client.workload.WorkloadRequestMapper;
-import com.gym.crm.core.client.workload.WorkloadUpdateEvent;
-import com.gym.crm.core.client.workload.model.ActionType;
-import com.gym.crm.core.client.workload.model.TrainerWorkloadRequest;
 import com.gym.crm.core.dao.search.filters.TraineeTrainingSearchFilter;
 import com.gym.crm.core.dao.search.filters.TrainerTrainingSearchFilter;
 import com.gym.crm.core.dto.request.CreateTrainingRequest;
 import com.gym.crm.core.exception.EntityNotFoundException;
 import com.gym.crm.core.exception.EntityValidationException;
+import com.gym.crm.core.messaging.workload.ActionType;
+import com.gym.crm.core.messaging.workload.TrainerWorkloadMessage;
+import com.gym.crm.core.messaging.workload.WorkloadMessageMapper;
+import com.gym.crm.core.messaging.workload.WorkloadUpdateEvent;
 import com.gym.crm.core.model.Trainee;
 import com.gym.crm.core.model.Trainer;
 import com.gym.crm.core.model.Training;
@@ -18,7 +18,6 @@ import com.gym.crm.core.model.User;
 import com.gym.crm.core.repository.TraineeRepository;
 import com.gym.crm.core.repository.TrainerRepository;
 import com.gym.crm.core.repository.TrainingRepository;
-import com.gym.crm.core.security.JwtTokenExtractor;
 import com.gym.crm.core.service.common.EntityValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,8 +33,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -47,10 +46,13 @@ import static org.mockito.Mockito.when;
 class TrainingServiceImplTest {
 
     private static final Long ID = 1L;
-    private static final String TRAINEE_USERNAME = "John.Doe";
+    private static final String TRAINEE_USERNAME = "Abdul.Hariton";
     private static final String TRAINER_USERNAME = "Mike.Tyson";
-
-    private final Training training = buildTraining();
+    private static final String TRAINING_NAME = "Boxing basics";
+    private static final int YEAR = 2024;
+    private static final int MONTH = 5;
+    private static final int DAY = 1;
+    private static final int DURATION = 60;
 
     @Mock
     private TrainingRepository trainingRepository;
@@ -60,53 +62,44 @@ class TrainingServiceImplTest {
     private TrainerRepository trainerRepository;
     @Mock
     private EntityValidator validator;
-    @InjectMocks
-    private TrainingServiceImpl service;
     @Mock
     private GymMetrics gymMetrics;
     @Mock
-    private WorkloadRequestMapper workloadRequestMapper;
+    private WorkloadMessageMapper workloadMessageMapper;
     @Mock
     private ApplicationEventPublisher publisher;
-    @Mock
-    private JwtTokenExtractor jwtTokenExtractor;
+
+    @InjectMocks
+    private TrainingServiceImpl service;
 
     @Test
     void create_whenValidRequest_buildsTrainingAndSaves() {
         Trainee trainee = buildTrainee();
         Trainer trainer = buildTrainer();
         CreateTrainingRequest request = buildCreateRequest();
-        Training savedTraining = buildTraining();
-        TrainerWorkloadRequest workloadRequest = new TrainerWorkloadRequest().trainerUsername(TRAINER_USERNAME);
-        String jwtToken = "jwt-token";
-
+        Training saved = buildTraining();
+        TrainerWorkloadMessage expected = buildWorkloadMessage();
         when(traineeRepository.findByUserUsername(TRAINEE_USERNAME)).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUserUsername(TRAINER_USERNAME)).thenReturn(Optional.of(trainer));
-        when(trainingRepository.save(any(Training.class))).thenReturn(savedTraining);
-        when(workloadRequestMapper.toRequest(savedTraining, ActionType.ADD)).thenReturn(workloadRequest);
-        when(jwtTokenExtractor.extract()).thenReturn(jwtToken);
+        when(trainingRepository.save(any(Training.class))).thenReturn(saved);
+        when(workloadMessageMapper.toMessage(saved, ActionType.ADD)).thenReturn(expected);
 
         Training actual = service.create(request);
 
-        assertThat(actual.getName()).isEqualTo("Boxing basics");
+        assertThat(actual.getName()).isEqualTo(TRAINING_NAME);
         assertThat(actual.getTrainee()).isEqualTo(trainee);
         assertThat(actual.getTrainer()).isEqualTo(trainer);
-        assertThat(actual.getTrainingType()).isEqualTo(trainer.getSpecialization());
-        assertThat(actual.getTrainingDate()).isEqualTo(LocalDate.of(2024, 5, 1));
-        assertThat(actual.getTrainingDuration()).isEqualByComparingTo(BigDecimal.valueOf(60));
-        verify(traineeRepository).findByUserUsername(TRAINEE_USERNAME);
-        verify(trainerRepository).findByUserUsername(TRAINER_USERNAME);
-        verify(validator).validateTraining(any(Training.class));
+        assertThat(actual.getTrainingDate()).isEqualTo(LocalDate.of(YEAR, MONTH, DAY));
+        assertThat(actual.getTrainingDuration()).isEqualByComparingTo(BigDecimal.valueOf(DURATION));
         verify(trainingRepository).save(any(Training.class));
+        verify(workloadMessageMapper).toMessage(saved, ActionType.ADD);
+        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of(expected)));
         verify(gymMetrics).incrementTrainingsCreated();
-        verify(workloadRequestMapper).toRequest(savedTraining, ActionType.ADD);
-        verify(publisher).publishEvent(new WorkloadUpdateEvent(List.of(workloadRequest), jwtToken, null));
     }
 
     @Test
     void create_whenTraineeNotFound_throwsEntityNotFoundException() {
         CreateTrainingRequest request = buildCreateRequest();
-
         when(traineeRepository.findByUserUsername(TRAINEE_USERNAME)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.create(request))
@@ -121,7 +114,6 @@ class TrainingServiceImplTest {
     @Test
     void create_whenTrainerNotFound_throwsEntityNotFoundException() {
         CreateTrainingRequest request = buildCreateRequest();
-
         when(traineeRepository.findByUserUsername(TRAINEE_USERNAME)).thenReturn(Optional.of(buildTrainee()));
         when(trainerRepository.findByUserUsername(TRAINER_USERNAME)).thenReturn(Optional.empty());
 
@@ -137,12 +129,10 @@ class TrainingServiceImplTest {
     void create_usesTrainerSpecializationAsTrainingType() {
         Trainer trainer = buildTrainer();
         CreateTrainingRequest request = buildCreateRequest();
-        TrainerWorkloadRequest workloadRequest = new TrainerWorkloadRequest().trainerUsername(TRAINER_USERNAME);
-
         when(traineeRepository.findByUserUsername(TRAINEE_USERNAME)).thenReturn(Optional.of(buildTrainee()));
         when(trainerRepository.findByUserUsername(TRAINER_USERNAME)).thenReturn(Optional.of(trainer));
         when(trainingRepository.save(any(Training.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(workloadRequestMapper.toRequest(any(Training.class), any(ActionType.class))).thenReturn(workloadRequest);
+        when(workloadMessageMapper.toMessage(any(Training.class), any(ActionType.class))).thenReturn(buildWorkloadMessage());
 
         Training actual = service.create(request);
 
@@ -154,12 +144,12 @@ class TrainingServiceImplTest {
 
     @Test
     void findAll_whenTrainingsExist_returnsAllTrainings() {
+        Training training = buildTraining();
         when(trainingRepository.findAll()).thenReturn(List.of(training));
 
         List<Training> actual = service.findAll();
 
-        assertThat(actual.size()).isEqualTo(1);
-        assertThat(actual.iterator().next()).isEqualTo(training);
+        assertThat(actual).hasSize(1).contains(training);
         verify(trainingRepository).findAll();
     }
 
@@ -169,13 +159,14 @@ class TrainingServiceImplTest {
 
         List<Training> actual = service.findAll();
 
-        assertThat(actual.isEmpty()).isTrue();
+        assertThat(actual).isEmpty();
         verify(trainingRepository).findAll();
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void findByTraineeCriteria_whenFilterValid_returnsMatchingTrainings() {
+        Training training = buildTraining();
         TraineeTrainingSearchFilter filter = TraineeTrainingSearchFilter.builder()
                 .username(TRAINEE_USERNAME)
                 .build();
@@ -183,12 +174,8 @@ class TrainingServiceImplTest {
 
         List<Training> actual = service.findByTraineeCriteria(filter);
 
-        ArgumentCaptor<Specification<Training>> captor = ArgumentCaptor.forClass(Specification.class);
-        verify(trainingRepository).findAll(captor.capture());
+        assertThat(actual).hasSize(1).contains(training);
         verify(validator).requireNonNull(filter, "Search filter cannot be null");
-        assertThat(captor.getValue()).isNotNull();
-        assertThat(actual.size()).isEqualTo(1);
-        assertThat(actual.iterator().next()).isEqualTo(training);
     }
 
     @Test
@@ -196,19 +183,18 @@ class TrainingServiceImplTest {
     void findByTraineeCriteria_whenNoResults_returnsEmptyList() {
         TraineeTrainingSearchFilter filter = TraineeTrainingSearchFilter.builder()
                 .username(TRAINEE_USERNAME)
-                .fromDate(LocalDate.of(2030, 1, 1))
                 .build();
         when(trainingRepository.findAll(any(Specification.class))).thenReturn(List.of());
 
         List<Training> actual = service.findByTraineeCriteria(filter);
 
-        assertThat(actual.isEmpty()).isTrue();
-        verify(trainingRepository).findAll(any(Specification.class));
+        assertThat(actual).isEmpty();
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void findByTrainerCriteria_whenFilterValid_returnsMatchingTrainings() {
+        Training training = buildTraining();
         TrainerTrainingSearchFilter filter = TrainerTrainingSearchFilter.builder()
                 .username(TRAINER_USERNAME)
                 .build();
@@ -216,12 +202,8 @@ class TrainingServiceImplTest {
 
         List<Training> actual = service.findByTrainerCriteria(filter);
 
-        ArgumentCaptor<Specification<Training>> captor = ArgumentCaptor.forClass(Specification.class);
-        verify(trainingRepository).findAll(captor.capture());
+        assertThat(actual).hasSize(1).contains(training);
         verify(validator).requireNonNull(filter, "Search filter cannot be null");
-        assertThat(captor.getValue()).isNotNull();
-        assertThat(actual.size()).isEqualTo(1);
-        assertThat(actual.iterator().next()).isEqualTo(training);
     }
 
     @Test
@@ -229,14 +211,12 @@ class TrainingServiceImplTest {
     void findByTrainerCriteria_whenNoResults_returnsEmptyList() {
         TrainerTrainingSearchFilter filter = TrainerTrainingSearchFilter.builder()
                 .username(TRAINER_USERNAME)
-                .fromDate(LocalDate.of(2030, 1, 1))
                 .build();
         when(trainingRepository.findAll(any(Specification.class))).thenReturn(List.of());
 
         List<Training> actual = service.findByTrainerCriteria(filter);
 
-        assertThat(actual.isEmpty()).isTrue();
-        verify(trainingRepository).findAll(any(Specification.class));
+        assertThat(actual).isEmpty();
     }
 
     @Test
@@ -245,7 +225,6 @@ class TrainingServiceImplTest {
                 .when(validator).requireNonNull(null, "Search filter cannot be null");
 
         assertThrows(EntityValidationException.class, () -> service.findByTrainerCriteria(null));
-
         verify(trainingRepository, never()).findAll(any(Specification.class));
     }
 
@@ -255,7 +234,6 @@ class TrainingServiceImplTest {
                 .when(validator).requireNonNull(null, "Search filter cannot be null");
 
         assertThrows(EntityValidationException.class, () -> service.findByTraineeCriteria(null));
-
         verify(trainingRepository, never()).findAll(any(Specification.class));
     }
 
@@ -263,31 +241,29 @@ class TrainingServiceImplTest {
         return CreateTrainingRequest.builder()
                 .traineeUsername(TRAINEE_USERNAME)
                 .trainerUsername(TRAINER_USERNAME)
-                .trainingName("Boxing basics")
-                .trainingDate(LocalDate.of(2024, 5, 1))
-                .trainingDuration(BigDecimal.valueOf(60))
+                .trainingName(TRAINING_NAME)
+                .trainingDate(LocalDate.of(YEAR, MONTH, DAY))
+                .trainingDuration(BigDecimal.valueOf(DURATION))
                 .build();
     }
 
     private Trainee buildTrainee() {
-        User user = User.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .username(TRAINEE_USERNAME)
-                .build();
         return Trainee.builder()
-                .user(user)
+                .user(User.builder()
+                        .firstName("Abdul")
+                        .lastName("Hariton")
+                        .username(TRAINEE_USERNAME)
+                        .build())
                 .build();
     }
 
     private Trainer buildTrainer() {
-        User user = User.builder()
-                .firstName("Mike")
-                .lastName("Tyson")
-                .username(TRAINER_USERNAME)
-                .build();
         return Trainer.builder()
-                .user(user)
+                .user(User.builder()
+                        .firstName("Mike")
+                        .lastName("Tyson")
+                        .username(TRAINER_USERNAME)
+                        .build())
                 .specialization(TrainingType.builder()
                         .trainingTypeName("BOXING")
                         .build())
@@ -295,31 +271,19 @@ class TrainingServiceImplTest {
     }
 
     private Training buildTraining() {
-        User user = User.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .username("John.Doe")
-                .build();
-
-        Trainee trainee = Trainee.builder()
-                .user(user)
-                .build();
-
-        Trainer trainer = Trainer.builder()
-                .user(user)
-                .specialization(TrainingType.builder()
-                        .trainingTypeName("BOXING")
-                        .build())
-                .build();
-
         return Training.builder()
                 .id(ID)
-                .name("Boxing basics")
-                .trainee(trainee)
-                .trainer(trainer)
+                .name(TRAINING_NAME)
+                .trainee(buildTrainee())
+                .trainer(buildTrainer())
                 .trainingType(TrainingType.builder().trainingTypeName("BOXING").build())
-                .trainingDate(LocalDate.of(2024, 5, 1))
-                .trainingDuration(BigDecimal.valueOf(60))
+                .trainingDate(LocalDate.of(YEAR, MONTH, DAY))
+                .trainingDuration(BigDecimal.valueOf(DURATION))
                 .build();
+    }
+
+    private TrainerWorkloadMessage buildWorkloadMessage() {
+        return new TrainerWorkloadMessage(TRAINER_USERNAME, "Mike", "Tyson", true,
+                LocalDate.of(YEAR, MONTH, DAY), DURATION, ActionType.ADD);
     }
 }

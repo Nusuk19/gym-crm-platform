@@ -2,3 +2,9 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+spring:
+  activemq:
+    broker-url: tcp://localhost:61616
+    user: gym-crm
+    password: gym-crm

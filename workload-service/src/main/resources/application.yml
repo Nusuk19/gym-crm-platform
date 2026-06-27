@@ -10,6 +10,9 @@ server:
 app:
   api:
     base-path: /api/v1
+  jms:
+    queue:
+      workload: trainer-workload-queue
 
 eureka:
   client:

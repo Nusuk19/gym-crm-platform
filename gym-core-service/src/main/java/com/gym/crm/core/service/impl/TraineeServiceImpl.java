@@ -1,19 +1,18 @@
 package com.gym.crm.core.service.impl;
 
 import com.gym.crm.core.actuator.metrics.GymMetrics;
-import com.gym.crm.core.client.workload.WorkloadRequestMapper;
-import com.gym.crm.core.client.workload.WorkloadUpdateEvent;
-import com.gym.crm.core.client.workload.model.ActionType;
-import com.gym.crm.core.client.workload.model.TrainerWorkloadRequest;
 import com.gym.crm.core.dto.request.ActivationRequest;
 import com.gym.crm.core.dto.request.ChangePasswordRequest;
 import com.gym.crm.core.exception.EntityNotFoundException;
+import com.gym.crm.core.messaging.workload.ActionType;
+import com.gym.crm.core.messaging.workload.TrainerWorkloadMessage;
+import com.gym.crm.core.messaging.workload.WorkloadMessageMapper;
+import com.gym.crm.core.messaging.workload.WorkloadUpdateEvent;
 import com.gym.crm.core.model.Trainee;
 import com.gym.crm.core.model.Trainer;
 import com.gym.crm.core.model.User;
 import com.gym.crm.core.repository.TraineeRepository;
 import com.gym.crm.core.repository.TrainerRepository;
-import com.gym.crm.core.security.JwtTokenExtractor;
 import com.gym.crm.core.service.TraineeService;
 import com.gym.crm.core.service.UserProfileService;
 import com.gym.crm.core.service.UserService;
@@ -41,9 +40,8 @@ public class TraineeServiceImpl implements TraineeService {
     private final UserProfileService userProfileService;
     private final UserService userService;
     private final GymMetrics gymMetrics;
-    private final WorkloadRequestMapper workloadRequestMapper;
     private final ApplicationEventPublisher publisher;
-    private final JwtTokenExtractor jwtTokenExtractor;
+    private final WorkloadMessageMapper workloadMessageMapper;
 
     @Override
     @Transactional
@@ -124,14 +122,14 @@ public class TraineeServiceImpl implements TraineeService {
 
         Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException(TRAINEE_NOT_FOUND + username));
-        List<TrainerWorkloadRequest> workloadRequests = trainee.getTrainings().stream()
-                .map(training -> workloadRequestMapper.toRequest(training, ActionType.DELETE))
+        List<TrainerWorkloadMessage> messages = trainee.getTrainings().stream()
+                .map(training -> workloadMessageMapper.toMessage(training, ActionType.DELETE))
                 .toList();
 
         traineeRepository.delete(trainee);
-        publisher.publishEvent(new WorkloadUpdateEvent(workloadRequests, jwtTokenExtractor.extract(), org.slf4j.MDC.get(com.gym.crm.core.logging.TransactionIdFilter.TRANSACTION_ID_KEY)));
+        publisher.publishEvent(new WorkloadUpdateEvent(messages));
 
-        log.info("Trainee deleted: username={}, workload events published: {}", username, workloadRequests.size());
+        log.info("Trainee deleted: username={}, workload events published: {}", username, messages.size());
     }
 
     @Override

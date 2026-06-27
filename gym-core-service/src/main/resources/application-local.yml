@@ -8,6 +8,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  activemq:
+    broker-url: tcp://localhost:61616
+    user: gym-crm
+    password: gym-crm
 
 management:
   endpoint:
@@ -18,10 +22,6 @@ logging:
   level:
     com.gym.crm: DEBUG
     org.hibernate.SQL: DEBUG
-
-workload:
-  service:
-    base-url: http://localhost:8082/workload-service/api/v1
 
 eureka:
   client:
