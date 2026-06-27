@@ -8,6 +8,7 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Slf4j
 @Component
@@ -21,7 +22,7 @@ public class DeadLetterQueueProducer {
     private String dlqQueue;
 
     public void send(TrainerWorkloadMessage originalMessage, String reason) {
-        DeadLetterMessage deadLetterMessage = new DeadLetterMessage(originalMessage, reason, LocalDateTime.now());
+        DeadLetterMessage deadLetterMessage = new DeadLetterMessage(originalMessage, reason, LocalDateTime.now(ZoneOffset.UTC));
 
         jmsTemplate.send(dlqQueue, session -> messageConverter.toMessage(deadLetterMessage, session));
         log.warn("Message sent to DLQ. queue={}, reason={}, trainer={}", dlqQueue, reason,
