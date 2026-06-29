@@ -19,3 +19,8 @@ jwt:
 logging:
   level:
     com.gym.crm: DEBUG
+
+app:
+  jms:
+    consumer:
+      concurrency: 1-3
