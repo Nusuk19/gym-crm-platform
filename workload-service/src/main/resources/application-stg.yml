@@ -1,0 +1,10 @@
+app:
+  jms:
+    queue:
+      workload: trainer-workload-queue.stg
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    com.gym.crm: INFO

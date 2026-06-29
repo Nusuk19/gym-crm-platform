@@ -6,6 +6,10 @@ spring:
     broker-url: vm://localhost?broker.persistent=false
     user: gym-crm
     password: gym-crm
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 app:
   jms:
@@ -17,3 +21,6 @@ app:
 eureka:
   client:
     enabled: false
+
+jwt:
+  secret: test-secret-key-test-secret-key-123456
