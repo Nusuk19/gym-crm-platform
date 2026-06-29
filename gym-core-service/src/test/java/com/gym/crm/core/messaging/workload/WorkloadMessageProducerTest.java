@@ -10,6 +10,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
+import org.springframework.jms.JmsException;
+import org.springframework.jms.UncategorizedJmsException;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -17,8 +19,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -96,6 +100,15 @@ class WorkloadMessageProducerTest {
         verify(jmsTemplate).send(eq(QUEUE), captor.capture());
         captor.getValue().createMessage(session);
         verify(jmsMessage, never()).setStringProperty(eq(TransactionIdFilter.TRANSACTION_ID_HEADER), any());
+    }
+
+    @Test
+    void send_shouldNotThrow_whenJmsExceptionOccurs() {
+        TrainerWorkloadMessage message = buildMessage();
+        JmsException jmsException = new UncategorizedJmsException("broker unavailable");
+        doThrow(jmsException).when(jmsTemplate).send(eq(QUEUE), any(MessageCreator.class));
+
+        assertThatCode(() -> producer.send(message)).doesNotThrowAnyException();
     }
 
     private TrainerWorkloadMessage buildMessage() {

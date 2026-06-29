@@ -1,6 +1,10 @@
 spring:
   application:
     name: workload-service
+  activemq:
+    broker-url: ${ACTIVEMQ_BROKER_URL:vm://localhost?broker.persistent=false}
+    user: ${ACTIVEMQ_USER:gym-crm}
+    password: ${ACTIVEMQ_PASSWORD:gym-crm}
 
 server:
   port: 8082
@@ -14,6 +18,10 @@ app:
     queue:
       workload: trainer-workload-queue
       dlq: ActiveMQ.DLQ
+    redelivery:
+      maximum-redeliveries: ${WORKLOAD_MESSAGE_MAX_REDELIVERIES:3}
+      initial-delay-ms: ${WORKLOAD_MESSAGE_INITIAL_REDELIVERY_DELAY_MS:1000}
+      delay-ms: ${WORKLOAD_MESSAGE_REDELIVERY_DELAY_MS:2000}
 
 eureka:
   client:
