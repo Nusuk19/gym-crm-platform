@@ -5,6 +5,14 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     show-sql: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+    activemq:
+      broker-url: ${ACTIVEMQ_BROKER_URL}
+      user: ${ACTIVEMQ_USER}
+      password: ${ACTIVEMQ_PASSWORD}
 
 logging:
   level:

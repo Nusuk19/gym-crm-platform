@@ -2,7 +2,6 @@ spring:
   datasource:
     url: jdbc:h2:mem:${random.uuid};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
-
   jpa:
     hibernate:
       ddl-auto: validate
@@ -11,18 +10,26 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
-
   liquibase:
     change-log: classpath:db/changelog-master.xml
-
   security:
     user:
       name: ignored
       password: ignored
+  activemq:
+    broker-url: vm://localhost?broker.persistent=false
+    user: gym-local
+    password: gym-local
+    jms:
+      listener:
+        auto-startup: false
 
 app:
   api:
     base-path: /api/v1
+  jms:
+    queue:
+      workload: trainer-workload-queue
 
 password:
   length: 10
@@ -31,10 +38,6 @@ password:
 jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration: 3600000
-
-workload:
-  service:
-
 
 eureka:
   client:

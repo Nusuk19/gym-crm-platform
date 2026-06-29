@@ -1,0 +1,10 @@
+app:
+  jms:
+    queue:
+      workload: ${TRAINER_WORKLOAD_QUEUE}
+
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    com.gym.crm: WARN
