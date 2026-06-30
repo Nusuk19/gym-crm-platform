@@ -2,6 +2,8 @@ app:
   jms:
     queue:
       workload: trainer-workload-queue.dev
+    consumer:
+      concurrency: 1-3
 
 logging:
   level:
