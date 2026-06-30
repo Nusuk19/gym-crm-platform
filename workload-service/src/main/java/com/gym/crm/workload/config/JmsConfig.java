@@ -25,8 +25,8 @@ import java.util.List;
 @EnableJms
 public class JmsConfig {
 
-    private static final String PROCESSING_FAILED_MSG =
-            "Workload message processing failed after retries, message moved to DLQ";
+    @Value("${app.jms.consumer.concurrency}")
+    private String concurrency;
 
     @Bean
     @Primary
@@ -61,6 +61,7 @@ public class JmsConfig {
         configurer.configure(factory, connectionFactory);
         factory.setSessionTransacted(true);
         factory.setErrorHandler(jmsErrorHandler());
+        factory.setConcurrency(concurrency);
 
         return factory;
     }

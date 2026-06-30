@@ -17,6 +17,8 @@ app:
       maximum-redeliveries: 0
       initial-delay-ms: 0
       delay-ms: 0
+  consumer:
+    concurrency: 1
 
 eureka:
   client:
