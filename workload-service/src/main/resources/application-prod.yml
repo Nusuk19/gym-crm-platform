@@ -5,6 +5,11 @@ app:
     consumer:
       concurrency: ${JMS_CONSUMER_CONCURRENCY:5-10}
 
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+
 logging:
   level:
     root: WARN

@@ -7,6 +7,8 @@ spring:
     redis:
       host: localhost
       port: 6379
+    mongodb:
+      uri: mongodb://localhost:27017/workload-db
 
 eureka:
   client:
