@@ -5,6 +5,11 @@ app:
     consumer:
       concurrency: 1-3
 
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+
 logging:
   level:
     root: INFO

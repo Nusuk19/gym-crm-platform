@@ -5,6 +5,9 @@ spring:
     broker-url: ${ACTIVEMQ_BROKER_URL:vm://localhost?broker.persistent=false}
     user: ${ACTIVEMQ_USER:gym-crm}
     password: ${ACTIVEMQ_PASSWORD:gym-crm}
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/workload_db}
 
 server:
   port: 8082
