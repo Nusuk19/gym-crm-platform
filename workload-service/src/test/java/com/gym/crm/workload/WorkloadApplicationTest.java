@@ -13,11 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 @ActiveProfiles("test")
 class WorkloadApplicationTest {
 
-    @DynamicPropertySource
-    static void setMongoProperties(DynamicPropertyRegistry registry) {
-        MongoContainerTestConfig.setMongoContainerProperties(registry);
-    }
-
     @Test
     void contextLoads() {
     }

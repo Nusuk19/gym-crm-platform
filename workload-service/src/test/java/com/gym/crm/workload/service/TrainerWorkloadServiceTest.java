@@ -1,5 +1,6 @@
 package com.gym.crm.workload.service;
 
+import com.gym.crm.workload.config.AbstractMongoIntegrationTest;
 import com.gym.crm.workload.config.MongoContainerTestConfig;
 import com.gym.crm.workload.openapi.ActionType;
 import com.gym.crm.workload.openapi.TrainerMonthlyWorkloadResponse;
@@ -22,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class TrainerWorkloadServiceTest {
+class TrainerWorkloadServiceTest extends AbstractMongoIntegrationTest {
 
     private static final String USERNAME = "abdul.hariton";
     private static final String FIRST_NAME = "Abdul";
@@ -32,19 +33,6 @@ class TrainerWorkloadServiceTest {
 
     @Autowired
     private TrainerWorkloadServiceImpl service;
-
-    @Autowired
-    private TrainerWorkloadRepository repository;
-
-    @DynamicPropertySource
-    static void setMongoProperties(DynamicPropertyRegistry registry) {
-        MongoContainerTestConfig.setMongoContainerProperties(registry);
-    }
-
-    @BeforeEach
-    void setUp() {
-        repository.deleteAll();
-    }
 
     @Test
     void updateTrainerWorkload_shouldAddDuration_whenActionTypeAdd() {

@@ -2,6 +2,7 @@ package com.gym.crm.workload.config;
 
 import lombok.NoArgsConstructor;
 import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
 
 import static lombok.AccessLevel.PRIVATE;
@@ -16,7 +17,8 @@ public final class MongoContainerTestConfig {
         MONGO_CONTAINER.start();
     }
 
-    public static void setMongoContainerProperties(DynamicPropertyRegistry registry) {
+    @DynamicPropertySource
+    static void setMongoProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.mongodb.uri", MONGO_CONTAINER::getReplicaSetUrl);
     }
 }

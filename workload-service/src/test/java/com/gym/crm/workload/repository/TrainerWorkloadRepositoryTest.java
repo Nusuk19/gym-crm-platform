@@ -1,5 +1,6 @@
 package com.gym.crm.workload.repository;
 
+import com.gym.crm.workload.config.AbstractMongoIntegrationTest;
 import com.gym.crm.workload.config.MongoContainerTestConfig;
 import com.gym.crm.workload.model.MonthSummary;
 import com.gym.crm.workload.model.TrainerWorkload;
@@ -20,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataMongoTest
 @ActiveProfiles("test")
-class TrainerWorkloadRepositoryTest {
+class TrainerWorkloadRepositoryTest extends AbstractMongoIntegrationTest {
 
     private static final String USERNAME = "abdul.hariton";
     private static final String FIRST_NAME = "Abdul";
@@ -28,19 +29,6 @@ class TrainerWorkloadRepositoryTest {
     private static final int YEAR = 2026;
     private static final int MONTH = 6;
     private static final int DURATION = 60;
-
-    @Autowired
-    private TrainerWorkloadRepository repository;
-
-    @DynamicPropertySource
-    static void setMongoProperties(DynamicPropertyRegistry registry) {
-        MongoContainerTestConfig.setMongoContainerProperties(registry);
-    }
-
-    @BeforeEach
-    void setUp() {
-        repository.deleteAll();
-    }
 
     @Test
     void save_shouldPersistTrainerWorkload() {
