@@ -10,6 +10,8 @@ spring:
     redis:
       host: localhost
       port: 6379
+    mongodb:
+      uri: mongodb://localhost:27017/workload-test-db
 
 app:
   jms:
@@ -25,4 +27,4 @@ eureka:
     enabled: false
 
 jwt:
-  secret: test-secret-key-test-secret-key-123456
+  secret: dGVzdC1zZWNyZXQta2V5LXRlc3Qtc2VjcmV0LWtleS0xMjM0NTY=

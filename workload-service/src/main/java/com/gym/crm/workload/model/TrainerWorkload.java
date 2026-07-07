@@ -27,7 +27,7 @@ public class TrainerWorkload {
 
     @Id
     @Field(name = "_id", write = NON_NULL)
-    private String trainerUsername;
+    private String username;
 
     @Field(name = "trainerFirstName", write = NON_NULL)
     private String trainerFirstName;

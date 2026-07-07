@@ -1,12 +1,17 @@
 package com.gym.crm.workload.service;
 
+import com.gym.crm.workload.config.MongoContainerTestConfig;
 import com.gym.crm.workload.openapi.ActionType;
 import com.gym.crm.workload.openapi.TrainerMonthlyWorkloadResponse;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
+import com.gym.crm.workload.repository.TrainerWorkloadRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -16,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@ActiveProfiles("test")
 class TrainerWorkloadServiceTest {
 
     private static final String USERNAME = "abdul.hariton";
@@ -27,6 +32,19 @@ class TrainerWorkloadServiceTest {
 
     @Autowired
     private TrainerWorkloadServiceImpl service;
+
+    @Autowired
+    private TrainerWorkloadRepository repository;
+
+    @DynamicPropertySource
+    static void setMongoProperties(DynamicPropertyRegistry registry) {
+        MongoContainerTestConfig.setMongoContainerProperties(registry);
+    }
+
+    @BeforeEach
+    void setUp() {
+        repository.deleteAll();
+    }
 
     @Test
     void updateTrainerWorkload_shouldAddDuration_whenActionTypeAdd() {
