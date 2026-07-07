@@ -1,17 +1,12 @@
 package com.gym.crm.workload.repository;
 
 import com.gym.crm.workload.config.AbstractMongoIntegrationTest;
-import com.gym.crm.workload.config.MongoContainerTestConfig;
 import com.gym.crm.workload.model.MonthSummary;
 import com.gym.crm.workload.model.TrainerWorkload;
 import com.gym.crm.workload.model.YearSummary;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 
 import java.util.ArrayList;
 import java.util.List;

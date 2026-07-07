@@ -1,18 +1,13 @@
 package com.gym.crm.workload.service;
 
 import com.gym.crm.workload.config.AbstractMongoIntegrationTest;
-import com.gym.crm.workload.config.MongoContainerTestConfig;
 import com.gym.crm.workload.openapi.ActionType;
 import com.gym.crm.workload.openapi.TrainerMonthlyWorkloadResponse;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
-import com.gym.crm.workload.repository.TrainerWorkloadRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 
 import java.time.LocalDate;
 import java.time.Month;
