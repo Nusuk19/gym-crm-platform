@@ -1,12 +1,13 @@
 package com.gym.crm.workload.service;
 
+import com.gym.crm.workload.config.AbstractMongoIntegrationTest;
 import com.gym.crm.workload.openapi.ActionType;
 import com.gym.crm.workload.openapi.TrainerMonthlyWorkloadResponse;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -16,8 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-class TrainerWorkloadServiceTest {
+@ActiveProfiles("test")
+class TrainerWorkloadServiceTest extends AbstractMongoIntegrationTest {
 
     private static final String USERNAME = "abdul.hariton";
     private static final String FIRST_NAME = "Abdul";
