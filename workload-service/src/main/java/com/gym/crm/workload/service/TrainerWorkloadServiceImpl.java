@@ -1,5 +1,6 @@
 package com.gym.crm.workload.service;
 
+import com.gym.crm.workload.logging.TransactionIdFilter;
 import com.gym.crm.workload.model.MonthSummary;
 import com.gym.crm.workload.model.TrainerWorkload;
 import com.gym.crm.workload.model.YearSummary;
@@ -8,6 +9,7 @@ import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
 import com.gym.crm.workload.repository.TrainerWorkloadRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jboss.logging.MDC;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,9 +26,19 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     @Override
     public void updateTrainerWorkload(TrainerWorkloadRequest request) {
+        log.debug("Processing workload update request. username={}, action={}, transactionId={}",
+                request.getTrainerUsername(), request.getActionType(),
+                MDC.get(TransactionIdFilter.TRANSACTION_ID_KEY));
+
         TrainerWorkload workload = repository.findByUsername(request.getTrainerUsername())
-                .map(existing -> refreshTrainer(existing, request))
-                .orElseGet(() -> createWorkload(request));
+                .map(existing -> {
+                    log.debug("Existing trainer workload found. username={}", request.getTrainerUsername());
+                    return refreshTrainer(existing, request);
+                })
+                .orElseGet(() -> {
+                    log.debug("Trainer workload not found, creating new. username={}", request.getTrainerUsername());
+                    return createWorkload(request);
+                });
 
         updateMonthlySummary(workload, request);
         repository.save(workload);
@@ -40,6 +52,8 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     @Override
     public TrainerMonthlyWorkloadResponse getMonthlyWorkload(String username, int year, int month) {
+        log.debug("Fetching monthly workload. username={}, year={}, month={}, transactionId={}",
+                username, year, month, MDC.get(TransactionIdFilter.TRANSACTION_ID_KEY));
         TrainerWorkload workload = findWorkload(username);
 
         int duration = workload.getYears().stream()
@@ -49,6 +63,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 .mapToInt(MonthSummary::getTrainingSummaryDuration)
                 .findFirst()
                 .orElse(0);
+        log.info("Monthly workload fetched. username={}, year={}, month={}, duration={}", username, year, month, duration);
 
         return new TrainerMonthlyWorkloadResponse(username, year, month, duration);
     }
