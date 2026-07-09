@@ -221,7 +221,6 @@ class TrainerWorkloadValidationTest {
                 .month(MONTH)
                 .trainingSummaryDuration(DURATION)
                 .build();
-
         YearSummary yearSummary = YearSummary.builder()
                 .year(YEAR)
                 .months(new ArrayList<>(List.of(monthSummary)))
