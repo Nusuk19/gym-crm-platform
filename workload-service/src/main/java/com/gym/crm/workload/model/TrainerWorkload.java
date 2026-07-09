@@ -1,5 +1,8 @@
 package com.gym.crm.workload.model;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,17 +30,23 @@ public class TrainerWorkload {
 
     @Id
     @Field(name = "_id", write = NON_NULL)
+    @NotBlank(message = "Trainer username is required")
     private String username;
 
     @Field(name = "trainerFirstName", write = NON_NULL)
+    @NotBlank(message = "Trainer first name is required")
     private String trainerFirstName;
 
     @Field(name = "trainerLastName", write = NON_NULL)
+    @NotBlank(message = "Trainer last name is required")
     private String trainerLastName;
 
     @Field(name = "isActive", write = NON_NULL)
+    @NotNull(message = "Trainer status is required")
     private Boolean isActive;
 
     @Field(name = "years", write = NON_NULL)
+    @NotNull(message = "Years list is required")
+    @Valid
     private List<YearSummary> years;
 }

@@ -7,6 +7,9 @@ import com.gym.crm.workload.model.YearSummary;
 import com.gym.crm.workload.openapi.TrainerMonthlyWorkloadResponse;
 import com.gym.crm.workload.openapi.TrainerWorkloadRequest;
 import com.gym.crm.workload.repository.TrainerWorkloadRepository;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.logging.MDC;
@@ -16,6 +19,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -23,6 +27,7 @@ import java.util.NoSuchElementException;
 public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     private final TrainerWorkloadRepository repository;
+    private final Validator validator;
 
     @Override
     public void updateTrainerWorkload(TrainerWorkloadRequest request) {
@@ -41,6 +46,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 });
 
         updateMonthlySummary(workload, request);
+        validate(workload);
         repository.save(workload);
 
         log.info("Trainer workload updated. username={}, actionType={}, date={}, duration={}",
@@ -66,6 +72,14 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         log.info("Monthly workload fetched. username={}, year={}, month={}, duration={}", username, year, month, duration);
 
         return new TrainerMonthlyWorkloadResponse(username, year, month, duration);
+    }
+
+    private void validate(TrainerWorkload workload) {
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
     }
 
     private TrainerWorkload findWorkload(String username) {
@@ -118,14 +132,20 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     }
 
     private MonthSummary createMonthSummary(List<MonthSummary> months, int month) {
-        MonthSummary summary = new MonthSummary(month, 0);
+        MonthSummary summary = MonthSummary.builder()
+                .month(month)
+                .trainingSummaryDuration(0)
+                .build();
         months.add(summary);
 
         return summary;
     }
 
     private YearSummary createYearSummary(List<YearSummary> years, int year) {
-        YearSummary summary = new YearSummary(year, new ArrayList<>());
+        YearSummary summary = YearSummary.builder()
+                .year(year)
+                .months(new ArrayList<>())
+                .build();
         years.add(summary);
 
         return summary;
