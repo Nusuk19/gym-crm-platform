@@ -1,7 +1,7 @@
 package com.gym.crm.workload.model;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,6 +24,6 @@ public class MonthSummary {
 
     @Field(name = "trainingSummaryDuration", write = NON_NULL)
     @NotNull(message = "Training summary duration is required")
-    @Positive(message = "Training summary duration must be positive")
+    @PositiveOrZero(message = "Training summary duration must be positive")
     private Integer trainingSummaryDuration;
 }
