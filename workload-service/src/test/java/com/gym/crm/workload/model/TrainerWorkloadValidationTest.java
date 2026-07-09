@@ -43,6 +43,17 @@ class TrainerWorkloadValidationTest {
     }
 
     @Test
+    void validate_shouldFailValidation_whenUsernameIsNull() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.setUsername(null);
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getMessage().equals("Trainer username is required"));
+    }
+
+    @Test
     void validate_shouldFailValidation_whenFirstNameIsNull() {
         TrainerWorkload workload = buildValidWorkload();
         workload.setTrainerFirstName(null);
@@ -54,9 +65,31 @@ class TrainerWorkloadValidationTest {
     }
 
     @Test
+    void validate_shouldFailValidation_whenFirstNameIsBlank() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.setTrainerFirstName("   ");
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getMessage().equals("Trainer first name is required"));
+    }
+
+    @Test
     void validate_shouldFailValidation_whenLastNameIsNull() {
         TrainerWorkload workload = buildValidWorkload();
         workload.setTrainerLastName(null);
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getMessage().equals("Trainer last name is required"));
+    }
+
+    @Test
+    void validate_shouldFailValidation_whenLastNameIsBlank() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.setTrainerLastName("   ");
 
         Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
 
@@ -84,6 +117,103 @@ class TrainerWorkloadValidationTest {
 
         assertThat(violations).isNotEmpty();
         assertThat(violations).anyMatch(v -> v.getMessage().equals("Years list is required"));
+    }
+
+    @Test
+    void validate_shouldPassValidation_whenYearsIsEmpty() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.setYears(new ArrayList<>());
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void validate_shouldFailValidation_whenYearIsNull() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.getYears().get(0).setYear(null);
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("years[0].year"));
+    }
+
+    @Test
+    void validate_shouldFailValidation_whenMonthsIsNull() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.getYears().get(0).setMonths(null);
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("years[0].months"));
+    }
+
+    @Test
+    void validate_shouldPassValidation_whenMonthsIsEmpty() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.getYears().get(0).setMonths(new ArrayList<>());
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void validate_shouldFailValidation_whenMonthIsNull() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.getYears().get(0).getMonths().get(0).setMonth(null);
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("years[0].months[0].month"));
+    }
+
+    @Test
+    void validate_shouldFailValidation_whenTrainingSummaryDurationIsNull() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.getYears().get(0).getMonths().get(0).setTrainingSummaryDuration(null);
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("years[0].months[0].trainingSummaryDuration"));
+    }
+
+    @Test
+    void validate_shouldFailValidation_whenTrainingSummaryDurationIsNegative() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.getYears().get(0).getMonths().get(0).setTrainingSummaryDuration(-1);
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("years[0].months[0].trainingSummaryDuration"));
+    }
+
+    @Test
+    void validate_shouldPassValidation_whenTrainingSummaryDurationIsZero() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.getYears().get(0).getMonths().get(0).setTrainingSummaryDuration(0);
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void validate_shouldReportMultipleViolations_whenMultipleFieldsInvalid() {
+        TrainerWorkload workload = buildValidWorkload();
+        workload.setUsername(null);
+        workload.setTrainerFirstName(null);
+        workload.setTrainerLastName(null);
+
+        Set<ConstraintViolation<TrainerWorkload>> violations = validator.validate(workload);
+
+        assertThat(violations).hasSize(3);
     }
 
     private TrainerWorkload buildValidWorkload() {
