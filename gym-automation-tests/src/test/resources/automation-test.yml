@@ -1,0 +1,9 @@
+system:
+  tests:
+    core:
+      base-url: http://localhost:8081
+    workload:
+      base-url: http://localhost:8082/workload-service
+    user:
+      username: billy.herrington
+      password: password
