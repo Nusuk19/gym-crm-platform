@@ -70,9 +70,6 @@ system:
       base-url: http://localhost:8081
     workload:
       base-url: http://localhost:8082/workload-service
-    user:
-      username: billy.herrington
-      password: password
 ```
 
 **Pass a system property** for a one-off run against a different environment - always wins over

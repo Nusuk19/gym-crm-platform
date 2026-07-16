@@ -20,14 +20,6 @@ public class TestProperties {
         return value("system.tests.workload.base-url");
     }
 
-    public static String defaultUsername() {
-        return value("system.tests.user.username");
-    }
-
-    public static String defaultPassword() {
-        return value("system.tests.user.password");
-    }
-
     private static String value(String key) {
         String override = System.getProperty(key);
         if (override != null && !override.isBlank()) {
