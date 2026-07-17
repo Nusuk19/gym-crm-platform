@@ -10,7 +10,6 @@ public final class Payloads {
 
     public static Map<String, Object> login(String username, String password) {
         Map<String, Object> body = new LinkedHashMap<>();
-
         body.put("username", username);
         body.put("password", password);
 
@@ -19,7 +18,6 @@ public final class Payloads {
 
     public static Map<String, Object> trainee(String firstName, String lastName) {
         Map<String, Object> body = new LinkedHashMap<>();
-
         body.put("firstName", firstName);
         body.put("lastName", lastName);
 
@@ -28,7 +26,6 @@ public final class Payloads {
 
     public static Map<String, Object> trainer(String firstName, String lastName, String specialization) {
         Map<String, Object> body = new LinkedHashMap<>();
-
         body.put("firstName", firstName);
         body.put("lastName", lastName);
         body.put("specialization", specialization);
@@ -39,7 +36,6 @@ public final class Payloads {
     public static Map<String, Object> training(String trainingName, String trainingDate, int trainingDuration,
                                                String traineeUsername, String trainerUsername) {
         Map<String, Object> body = new LinkedHashMap<>();
-
         body.put("trainingName", trainingName);
         body.put("trainingDate", trainingDate);
         body.put("trainingDuration", trainingDuration);
