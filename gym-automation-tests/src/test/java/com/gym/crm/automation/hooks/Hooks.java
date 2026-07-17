@@ -17,8 +17,8 @@ public class Hooks {
 
         Response response = coreClient.post("/api/v1/trainees/register", null, Payloads.trainee(name, name));
         if (response.statusCode() != 200) {
-            throw new IllegalStateException(
-                    "Failed to bootstrap the default user: " + response.statusCode() + " " + response.getBody().asString());
+            throw new IllegalStateException(String.format("Failed to bootstrap the default user: %s %s",
+                    response.statusCode(), response.getBody().asString()));
         }
 
         DefaultUser.set(response.jsonPath().getString("username"), response.jsonPath().getString("password"));
