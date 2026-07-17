@@ -45,4 +45,19 @@ public final class Payloads {
 
         return body;
     }
+
+    public static Map<String, Object> workload(String trainerUsername, String firstName, String lastName,
+                                               boolean isActive, String trainingDate, int trainingDuration,
+                                               String actionType) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("trainerUsername", trainerUsername);
+        body.put("trainerFirstName", firstName);
+        body.put("trainerLastName", lastName);
+        body.put("isActive", isActive);
+        body.put("trainingDate", trainingDate);
+        body.put("trainingDuration", trainingDuration);
+        body.put("actionType", actionType);
+
+        return body;
+    }
 }

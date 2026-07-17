@@ -31,4 +31,9 @@ public class ResponseSteps {
         String actual = context.getLastResponse().jsonPath().getString(field);
         assertThat(actual).isNotEqualTo(context.get(contextKey));
     }
+
+    @Then("the {string} field equals {int}")
+    public void theFieldEqualsInt(String field, int expected) {
+        assertThat(context.getLastResponse().jsonPath().getInt(field)).isEqualTo(expected);
+    }
 }

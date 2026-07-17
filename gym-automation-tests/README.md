@@ -50,11 +50,14 @@ mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags
 mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@integration"
 
 # a single endpoint group
-mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@auth"
-mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@trainee-register"
-mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@trainer-register"
-mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@training-create"
-mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@permissions"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@auth"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@trainee-register"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@trainer-register"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@training-create"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@permissions"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@workload-update"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@workload-get"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@workload-queue"
 ```
 
 ## Configuration
@@ -93,7 +96,7 @@ rather than silently falling back to a guess.
 | Package               | Responsibility                                                                  |
 |------------------------|----------------------------------------------------------------------------------|
 | `config`               | `TestProperties` - resolves base URLs / credentials (system property > YAML)    |
-| `client`               | `ApiClient` - the only class allowed to call RestAssured directly               |
+| `client`               | `ApiClient` (RestAssured), `WorkloadQueuePublisher` (raw JMS publish)            |
 | `support`              | `TestContext` (per-scenario state), `DefaultUser` (session-wide bootstrapped user), `Payloads`, `Unique` |
 | `hooks`                | `Hooks` - `@BeforeAll` bootstrap, registers the default user once per test session |
 | `steps`                | Cucumber step definitions                                                       |
@@ -105,6 +108,19 @@ URL - always go through `TestProperties`.
 
 ## Troubleshooting
 
+- **`@workload-queue` scenario times out (10s) without the duration ever matching`** -
+  the message likely never reached the listener, or was routed to
+  `ActiveMQ.DLQ`. Check `workload-service`'s logs for `Invalid workload
+  message, routing to DLQ` - and confirm the broker credentials in
+  `automation-test.yml` (`system.tests.broker.*`) match what
+  `workload-service` itself uses to connect (`spring.activemq.user/password`).
+- **`gym-core-service` and `workload-service` must share the same `jwt.secret`** -
+  the workload scenarios reuse the token obtained from `gym-core-service`'s
+  `/auth/login`. If the two services are configured with different secrets
+  (they are, by default, in `application-local.yml`), workload requests fail
+  signature verification and every workload scenario returns `403` instead of
+  the expected status. Set both to the same value before running
+  `@workload-update` / `@workload-get`.
 - **`Connection refused`** - the target service isn't running, or is on a different
   port/context-path than the defaults. Confirm it's up, or override the base URL as shown above.
 - **`IllegalStateException: Missing automation-test property '...'`** - the key isn't set in

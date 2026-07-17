@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Unique {
 
-    private static final AtomicLong COUNTER = new AtomicLong();
+    private static final AtomicLong COUNTER = new AtomicLong(System.currentTimeMillis());
 
     public static String name(String prefix) {
         return prefix + COUNTER.incrementAndGet();
@@ -16,5 +16,9 @@ public final class Unique {
 
     public static String digits() {
         return String.valueOf(COUNTER.incrementAndGet());
+    }
+
+    public static String username(String firstNamePart, String lastNamePart) {
+        return firstNamePart + "." + lastNamePart + COUNTER.incrementAndGet();
     }
 }

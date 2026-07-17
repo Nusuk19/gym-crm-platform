@@ -77,6 +77,12 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client-jakarta</artifactId>
+            <version>5.18.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -45,4 +45,4 @@ eureka:
     prefer-ip-address: true
 
 jwt:
-  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  secret: bpWUG7U57eLi3xZW/ky5ok4iNihJ/FspgiK9zvEtcbU=
