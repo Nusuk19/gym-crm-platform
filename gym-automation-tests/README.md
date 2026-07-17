@@ -49,8 +49,12 @@ mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags
 # only integration scenarios (cross-service flow)
 mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@integration"
 
-# a single endpoint group, e.g. once auth scenarios exist
-mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@auth-login"
+# a single endpoint group
+mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@auth"
+mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@trainee-register"
+mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@trainer-register"
+mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@training-create"
+mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@permissions"
 ```
 
 ## Configuration
@@ -90,7 +94,8 @@ rather than silently falling back to a guess.
 |------------------------|----------------------------------------------------------------------------------|
 | `config`               | `TestProperties` - resolves base URLs / credentials (system property > YAML)    |
 | `client`               | `ApiClient` - the only class allowed to call RestAssured directly               |
-| `support`              | `TestContext` - per-scenario shared state, constructor-injected via picocontainer |
+| `support`              | `TestContext` (per-scenario state), `DefaultUser` (session-wide bootstrapped user), `Payloads`, `Unique` |
+| `hooks`                | `Hooks` - `@BeforeAll` bootstrap, registers the default user once per test session |
 | `steps`                | Cucumber step definitions                                                       |
 | `resources/features`   | Gherkin scenarios                                                                |
 | `resources/automation-test.yml` | Default configuration                                                  |

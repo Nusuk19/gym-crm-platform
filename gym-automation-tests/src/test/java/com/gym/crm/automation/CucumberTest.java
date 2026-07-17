@@ -11,7 +11,7 @@ import static io.cucumber.junit.platform.engine.Constants.PLUGIN_PROPERTY_NAME;
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features")
-@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "com.gym.crm.automation.steps")
+@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "com.gym.crm.automation.steps, com.gym.crm.automation.hooks")
 @ConfigurationParameter(key = PLUGIN_PROPERTY_NAME, value = "pretty, summary")
 public class CucumberTest {
 }
