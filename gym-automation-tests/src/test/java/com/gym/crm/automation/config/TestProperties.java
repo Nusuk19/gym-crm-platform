@@ -20,6 +20,18 @@ public class TestProperties {
         return value("system.tests.workload.base-url");
     }
 
+    public static String brokerUrl() {
+        return value("system.tests.broker.url");
+    }
+
+    public static String brokerUser() {
+        return value("system.tests.broker.user");
+    }
+
+    public static String brokerPassword() {
+        return value("system.tests.broker.password");
+    }
+
     private static String value(String key) {
         String override = System.getProperty(key);
         if (override != null && !override.isBlank()) {
@@ -31,7 +43,6 @@ public class TestProperties {
             throw new IllegalStateException(
                     "Missing automation-test property '" + key + "': set it in automation-test.yml or pass -D" + key + "=...");
         }
-
         return fromFile;
     }
 
@@ -41,11 +52,9 @@ public class TestProperties {
             if (input == null) {
                 throw new IllegalStateException(resourceName + " not found on the test classpath");
             }
-
             Map<String, Object> raw = new Yaml().load(input);
             Map<String, String> flattened = new LinkedHashMap<>();
             flatten("", raw, flattened);
-
             return flattened;
         } catch (IllegalStateException e) {
             throw e;
@@ -59,7 +68,6 @@ public class TestProperties {
         for (Map.Entry<String, Object> entry : node.entrySet()) {
             String key = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
             Object value = entry.getValue();
-
             if (value instanceof Map<?, ?>) {
                 flatten(key, (Map<String, Object>) value, target);
             } else {
