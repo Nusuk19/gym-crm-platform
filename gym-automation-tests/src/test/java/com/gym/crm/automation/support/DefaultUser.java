@@ -1,12 +1,13 @@
 package com.gym.crm.automation.support;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DefaultUser {
 
     private static String username;
     private static String password;
-
-    private DefaultUser() {
-    }
 
     public static void set(String username, String password) {
         DefaultUser.username = username;

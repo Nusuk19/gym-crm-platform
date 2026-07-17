@@ -1,12 +1,13 @@
 package com.gym.crm.automation.support;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Payloads {
-
-    private Payloads() {
-    }
 
     public static Map<String, Object> login(String username, String password) {
         Map<String, Object> body = new LinkedHashMap<>();
