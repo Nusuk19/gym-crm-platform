@@ -18,8 +18,10 @@ public class TrainingSteps {
 
     @When("a training is created for the registered trainee and trainer")
     public void aTrainingIsCreatedForTheRegisteredTraineeAndTrainer() {
+        int duration = 45;
+        context.put("trainingDuration", String.valueOf(duration));
         context.setLastResponse(coreClient.post("/api/v1/trainings", context.getToken(), Payloads.training(
-                Unique.name("Session"), TRAINING_DATE, 45, context.get("traineeUsername"), context.get("trainerUsername"))));
+                Unique.name("Session"), TRAINING_DATE, duration, context.get("traineeUsername"), context.get("trainerUsername"))));
     }
 
     @When("a training is created for an unknown trainee")

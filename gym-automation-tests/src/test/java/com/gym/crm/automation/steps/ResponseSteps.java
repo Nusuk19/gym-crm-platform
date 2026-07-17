@@ -13,7 +13,9 @@ public class ResponseSteps {
 
     @Then("the response status is {int}")
     public void theResponseStatusIs(int expectedStatus) {
-        assertThat(context.getLastResponse().statusCode()).isEqualTo(expectedStatus);
+        assertThat(context.getLastResponse().statusCode())
+                .as("body: %s", context.getLastResponse().getBody().asString())
+                .isEqualTo(expectedStatus);
     }
 
     @Then("the response error code is {int}")

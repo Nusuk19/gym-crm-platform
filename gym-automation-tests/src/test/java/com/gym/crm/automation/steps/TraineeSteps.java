@@ -24,17 +24,21 @@ public class TraineeSteps {
 
     @Given("a registered trainee")
     public void aRegisteredTrainee() {
-        String name = Unique.name("Trainee");
-        Response response = coreClient.post(REGISTER_ENDPOINT, null, Payloads.trainee(name, name));
+        String firstName = Unique.name("Trainee");
+        String lastName = Unique.uniqueLastName("User");
+
+        Response response = coreClient.post(REGISTER_ENDPOINT, null, Payloads.trainee(firstName, lastName));
 
         context.put("traineeUsername", response.jsonPath().getString("username"));
+        context.put("traineePassword", response.jsonPath().getString("password"));
     }
 
     @When("a new trainee registers")
     public void aNewTraineeRegisters() {
-        String name = Unique.name("Trainee");
+        String firstName = Unique.name("Trainee");
+        String lastName = Unique.uniqueLastName("User");
 
-        context.setLastResponse(coreClient.post(REGISTER_ENDPOINT, null, Payloads.trainee(name, name)));
+        context.setLastResponse(coreClient.post(REGISTER_ENDPOINT, null, Payloads.trainee(firstName, lastName)));
     }
 
     @When("a trainee registers with the following details:")
@@ -51,17 +55,18 @@ public class TraineeSteps {
 
     @When("a trainee registers, then registers again with the same name")
     public void aTraineeRegistersThenRegistersAgainWithTheSameName() {
-        String name = Unique.name("Trainee");
-        Response first = coreClient.post(REGISTER_ENDPOINT, null, Payloads.trainee(name, name));
+        String firstName = Unique.name("Trainee");
+        String lastName = "User";
+        Response first = coreClient.post(REGISTER_ENDPOINT, null, Payloads.trainee(firstName, lastName));
 
         context.put("firstUsername", first.jsonPath().getString("username"));
-        context.setLastResponse(coreClient.post(REGISTER_ENDPOINT, null, Payloads.trainee(name, name)));
+        context.setLastResponse(coreClient.post(REGISTER_ENDPOINT, null, Payloads.trainee(firstName, lastName)));
     }
 
     @Given("another trainee is registered")
     public void anotherTraineeIsRegistered() {
         Response response = coreClient.post(REGISTER_ENDPOINT, null,
-                Payloads.trainee("Other", "Trainee" + Unique.digits()));
+                Payloads.trainee("Other", Unique.uniqueLastName("User")));
 
         context.put("otherUsername", response.jsonPath().getString("username"));
     }

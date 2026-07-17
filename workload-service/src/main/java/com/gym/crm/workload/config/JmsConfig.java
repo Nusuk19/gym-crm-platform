@@ -2,6 +2,7 @@ package com.gym.crm.workload.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gym.crm.workload.exception.InvalidMessageException;
+import com.gym.crm.workload.messaging.TrainerWorkloadMessage;
 import jakarta.jms.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -19,6 +20,7 @@ import org.springframework.jms.support.converter.MessageType;
 import org.springframework.util.ErrorHandler;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -71,6 +73,7 @@ public class JmsConfig {
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
         converter.setTargetType(MessageType.TEXT);
         converter.setTypeIdPropertyName("_type");
+        converter.setTypeIdMappings(Map.of("trainerWorkloadMessage", TrainerWorkloadMessage.class));
         converter.setObjectMapper(objectMapper);
 
         return converter;
