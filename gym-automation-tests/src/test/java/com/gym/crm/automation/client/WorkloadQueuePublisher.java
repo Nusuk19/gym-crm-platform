@@ -23,17 +23,20 @@ public class WorkloadQueuePublisher {
 
         try (Connection connection = connectionFactory.createConnection(TestProperties.brokerUser(), TestProperties.brokerPassword())) {
             connection.start();
-
-            try (Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
-                Queue queue = session.createQueue(QUEUE_NAME);
-                try (MessageProducer producer = session.createProducer(queue)) {
-                    var message = session.createTextMessage(toJson(workloadMessage));
-                    message.setStringProperty("_type", MESSAGE_TYPE);
-                    producer.send(message);
-                }
-            }
+            sendMessage(connection, workloadMessage);
         } catch (JMSException e) {
             throw new IllegalStateException(String.format("Failed to publish workload message to %s", QUEUE_NAME), e);
+        }
+    }
+
+    private void sendMessage(Connection connection, Map<String, Object> workloadMessage) throws JMSException {
+        try (Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+            Queue queue = session.createQueue(QUEUE_NAME);
+            try (MessageProducer producer = session.createProducer(queue)) {
+                var message = session.createTextMessage(toJson(workloadMessage));
+                message.setStringProperty("_type", MESSAGE_TYPE);
+                producer.send(message);
+            }
         }
     }
 
