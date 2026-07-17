@@ -10,7 +10,11 @@ public final class Unique {
 
     private static final AtomicLong COUNTER = new AtomicLong(System.currentTimeMillis());
 
-    public static String name(String prefix) {
+    public static String name(String name) {
+        return name;
+    }
+
+    public static String uniqueLastName(String prefix) {
         return prefix + COUNTER.incrementAndGet();
     }
 

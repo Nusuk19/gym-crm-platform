@@ -31,6 +31,11 @@ public class ApiClient {
                 .put(baseUrl + path);
     }
 
+    public Response delete(String path, String token) {
+        return request(token)
+                .delete(baseUrl + path);
+    }
+
     private RequestSpecification request(String token) {
         RequestSpecification request = RestAssured.given()
                 .relaxedHTTPSValidation()

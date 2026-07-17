@@ -10,15 +10,34 @@ docker-compose stack, CI), and simply points HTTP requests at them.
 
 ## Prerequisites
 
-Start the services the same way you always do (IDE run configuration, or
-`mvn spring-boot:run -pl gym-core-service` / `-pl workload-service`) and wait for
-`Started GymCrmApplication` / `Started WorkloadApplication` in their logs before running these
-tests. Their usual dependencies (PostgreSQL, MongoDB, Redis, ActiveMQ) must also be up.
+Start the shared infrastructure once, from the repository root:
+
+```bash
+docker compose -f infra/docker-compose.yml up -d
+```
+
+This starts PostgreSQL, MongoDB, Redis and ActiveMQ in disposable containers (no named
+volumes - data does not survive `docker compose down`, so every run starts clean and any
+machine that has Docker installed can reproduce it, not just yours).
+
+Then start the services themselves the same way you always do (IDE run configuration, or
+`mvn spring-boot:run -pl gym-core-service` / `-pl workload-service`), **making sure both run
+with the `local` Spring profile active** (`-Dspring-boot.run.profiles=local` or
+`SPRING_PROFILES_ACTIVE=local`) - `workload-service` silently falls back to an in-process,
+non-shared broker/DB otherwise, which looks like a passing startup but a broken cross-service
+message flow. Wait for `Started GymCrmApplication` / `Started WorkloadApplication` in their
+logs before running these tests.
 
 Default addresses (see [Configuration](#configuration) to change them):
 
 - `gym-core-service` at `http://localhost:8081`
 - `workload-service` at `http://localhost:8082/workload-service`
+
+Tear down and wipe state between runs with:
+
+```bash
+docker compose -f infra/docker-compose.yml down -v
+```
 
 ## Running the tests
 
@@ -29,7 +48,12 @@ run when explicitly requested.
 ### From the console (Maven)
 
 ```bash
-mvn test -pl automation-tests -DskipAutomationTests=false
+# the entire suite
+mvn test -pl gym-automation-tests -DskipAutomationTests=false
+
+# tests for a single microservice
+mvn test -pl gym-automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@core"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@workload"
 ```
 
 ### From the IDE
@@ -44,10 +68,7 @@ Every scenario is tagged. Filter with the standard Cucumber JUnit-platform prope
 
 ```bash
 # only component-level scenarios (single service, no cross-service check)
-mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@component"
-
-# only integration scenarios (cross-service flow)
-mvn test -pl automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@integration"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false -Dcucumber.filter.tags="@component"
 
 # a single endpoint group
 mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@auth"
@@ -58,6 +79,9 @@ mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter
 mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@workload-update"
 mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@workload-get"
 mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@workload-queue"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@training-workload-flow"
+mvn test -pl gym-automation-tests -DskipAutomationTests=false "-Dcucumber.filter.tags=@integration"
+
 ```
 
 ## Configuration
@@ -83,7 +107,7 @@ system:
 the file, no code changes needed:
 
 ```bash
-mvn test -pl automation-tests -DskipAutomationTests=false \
+mvn test -pl gym-automation-tests -DskipAutomationTests=false \
   -Dsystem.tests.core.base-url=http://staging-host:8081 \
   -Dsystem.tests.workload.base-url=http://staging-host:8082/workload-service
 ```
