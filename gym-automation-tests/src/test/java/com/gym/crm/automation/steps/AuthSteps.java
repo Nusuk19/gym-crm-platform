@@ -38,12 +38,12 @@ public class AuthSteps {
     @When("a user logs in with an unknown username")
     public void aUserLogsInWithAnUnknownUsername() {
         context.setLastResponse(coreClient.post(LOGIN_ENDPOINT, null,
-                Payloads.login("unknown.user", "wrong-password")));
+                Payloads.login("unknown.user", WRONG_PASSWORD)));
     }
 
     @When("the default user logs in with a wrong password")
     public void theDefaultUserLogsInWithAWrongPassword() {
         context.setLastResponse(coreClient.post(LOGIN_ENDPOINT, null,
-                Payloads.login(DefaultUser.username(), "wrong-password")));
+                Payloads.login(DefaultUser.username(), WRONG_PASSWORD)));
     }
 }
