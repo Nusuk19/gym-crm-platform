@@ -21,8 +21,7 @@ public class WorkloadQueuePublisher {
     public void publish(Map<String, Object> workloadMessage) {
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(TestProperties.brokerUrl());
 
-        try (Connection connection = connectionFactory.createConnection(
-                TestProperties.brokerUser(), TestProperties.brokerPassword())) {
+        try (Connection connection = connectionFactory.createConnection(TestProperties.brokerUser(), TestProperties.brokerPassword())) {
             connection.start();
 
             try (Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
