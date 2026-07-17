@@ -14,12 +14,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RequiredArgsConstructor
 public class AuthSteps {
 
+    private static final String LOGIN_ENDPOINT = "/api/v1/auth/login";
+    private static final String WRONG_PASSWORD = "wrong-password";
+
     private final TestContext context;
     private final ApiClient coreClient = new ApiClient(TestProperties.coreBaseUrl());
 
     @Given("an authenticated gym user")
     public void anAuthenticatedGymUser() {
-        var response = coreClient.post("/api/v1/auth/login", null,
+        var response = coreClient.post(LOGIN_ENDPOINT, null,
                 Payloads.login(DefaultUser.username(), DefaultUser.password()));
         assertThat(response.statusCode()).isEqualTo(200);
 
@@ -28,19 +31,19 @@ public class AuthSteps {
 
     @When("the default user logs in with valid credentials")
     public void theDefaultUserLogsInWithValidCredentials() {
-        context.setLastResponse(coreClient.post("/api/v1/auth/login", null,
+        context.setLastResponse(coreClient.post(LOGIN_ENDPOINT, null,
                 Payloads.login(DefaultUser.username(), DefaultUser.password())));
     }
 
     @When("a user logs in with an unknown username")
     public void aUserLogsInWithAnUnknownUsername() {
-        context.setLastResponse(coreClient.post("/api/v1/auth/login", null,
+        context.setLastResponse(coreClient.post(LOGIN_ENDPOINT, null,
                 Payloads.login("unknown.user", "wrong-password")));
     }
 
     @When("the default user logs in with a wrong password")
     public void theDefaultUserLogsInWithAWrongPassword() {
-        context.setLastResponse(coreClient.post("/api/v1/auth/login", null,
+        context.setLastResponse(coreClient.post(LOGIN_ENDPOINT, null,
                 Payloads.login(DefaultUser.username(), "wrong-password")));
     }
 }
