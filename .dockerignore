@@ -1,0 +1,13 @@
+**/target/
+**/.idea/
+**/*.iml
+.git/
+.github/
+gym-automation-tests/src/
+gym-automation-tests/target/
+gym-automation-tests/README.md
+infra/
+**/*.md
+**/.mvn/
+**/mvnw
+**/mvnw.cmd

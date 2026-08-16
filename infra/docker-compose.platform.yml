@@ -1,0 +1,172 @@
+networks:
+  gym-net:
+    driver: bridge
+  postgres-net:
+    driver: bridge
+    internal: true
+  redis-net:
+    driver: bridge
+    internal: true
+  mongo-net:
+    driver: bridge
+    internal: true
+  activemq-net:
+    driver: bridge
+    internal: true
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gym-postgres
+    networks: [ postgres-net ]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gym}
+      POSTGRES_USER: ${POSTGRES_USER:-gym}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gym}
+    volumes:
+      - gym-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gym} -d ${POSTGRES_DB:-gym}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: gym-redis
+    networks: [ redis-net ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mongo:
+    image: mongo:7
+    container_name: gym-mongo
+    networks: [ mongo-net ]
+    volumes:
+      - gym-mongo-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  activemq:
+    image: apache/activemq-classic:latest
+    container_name: gym-activemq
+    networks: [ activemq-net ]
+    ports:
+      - "8161:8161" # web console only; OpenWire stays internal
+    healthcheck:
+      test: [ "CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/61616' || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  discovery-service:
+    build:
+      context: ..
+      dockerfile: discovery-service/Dockerfile
+    container_name: discovery-service
+    networks: [ gym-net ]
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8761/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  gym-core-service:
+    build:
+      context: ..
+      dockerfile: gym-core-service/Dockerfile
+    container_name: gym-core-service
+    networks: [ gym-net, postgres-net, redis-net, activemq-net ]
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-gym}
+      DB_USERNAME: ${POSTGRES_USER:-gym}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-gym}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      ACTIVEMQ_USER: ${ACTIVEMQ_USER:-gym-crm}
+      ACTIVEMQ_PASSWORD: ${ACTIVEMQ_PASSWORD:-gym-crm}
+      JWT_SECRET: ${JWT_SECRET:-bpWUG7U57eLi3xZW/ky5ok4iNihJ/FspgiK9zvEtcbU=}
+      EUREKA_URL: http://discovery-service:8761/eureka/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      activemq:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  workload-service:
+    build:
+      context: ..
+      dockerfile: workload-service/Dockerfile
+    container_name: workload-service
+    networks: [ gym-net, mongo-net, activemq-net ]
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      MONGODB_URI: mongodb://mongo:27017/workload_db
+      ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      ACTIVEMQ_USER: ${ACTIVEMQ_USER:-gym-crm}
+      ACTIVEMQ_PASSWORD: ${ACTIVEMQ_PASSWORD:-gym-crm}
+      JWT_SECRET: ${JWT_SECRET:-bpWUG7U57eLi3xZW/ky5ok4iNihJ/FspgiK9zvEtcbU=}
+      EUREKA_URL: http://discovery-service:8761/eureka/
+    depends_on:
+      mongo:
+        condition: service_healthy
+      activemq:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8082/workload-service/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  gateway-service:
+    build:
+      context: ..
+      dockerfile: gateway-service/Dockerfile
+    container_name: gateway-service
+    networks: [ gym-net ]
+    environment:
+      EUREKA_URL: http://discovery-service:8761/eureka/
+    ports:
+      - "8080:8080"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      gym-core-service:
+        condition: service_healthy
+      workload-service:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  gym-postgres-data:
+  gym-mongo-data:
